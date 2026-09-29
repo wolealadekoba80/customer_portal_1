@@ -48,6 +48,7 @@ async function fetchOrders() {
         const result = await response.json();
 
         const salesOrders = result.message && result.message.sales_orders;
+        const payments = result.message && result.message.payment_made;
         // console.log(result);
 
         if (salesOrders) {
@@ -116,7 +117,9 @@ async function fetchOrders() {
             });
 
             // Calculate total advance paid using reduce on salesOrders
-            let totalAdvancePaid = salesOrders.reduce((acc, order) => acc + order.advance_paid, 0);
+            let grandPaid = salesOrders.reduce((acc, order) => acc + order.grand_total, 0);
+            let advancePaid = payments.reduce((acc, amount) => acc + amount.paid_amount, 0);
+            let balance12 = grandPaid - advancePaid
             // Calculate the balance as total amount - total advance paid
            
             // After all orders are processed, add the total amount row
@@ -132,21 +135,25 @@ async function fetchOrders() {
 
             // Initialize total payment penalty amount
             let totalPaymentPenaltyAmount = 0;
+            let totalPenaltyAmount = 0;
 
             // Loop through orders to calculate total payment penalty amount
             salesOrders.forEach(order => {
                 order.payment_schedule.forEach(schedule => {
-                    totalPaymentPenaltyAmount += schedule.custom_payment_amount_penality || 0;
+                    totalPaymentPenaltyAmount += schedule.paid_amount || 0;
+                    totalPenaltyAmount += schedule.custom_penality_amount || 0;
                 });
             });
-            let balance = totalPaymentPenaltyAmount - totalAdvancePaid;
+
+            let pap = totalPenaltyAmount + grandPaid
+            let balance =  balance12;
 
             // Add the row for Total Payment Amount + Penalty
             const paymentAmountPenalityRow = document.createElement('tr');
             paymentAmountPenalityRow.innerHTML = `
                 <td colspan="4" style="text-align:right;"><strong>Total Payment Amount + Penalty</strong></td>
                 <td colspan="2">
-                <span id="total-payment-penalty">₦${totalPaymentPenaltyAmount.toLocaleString()}</span>
+                <span id="total-payment-penalty">₦${pap.toLocaleString()}</span>
                 </td>
             `;
             orderItemsContainer.appendChild(paymentAmountPenalityRow);
@@ -155,7 +162,7 @@ async function fetchOrders() {
             advancePaidRow.innerHTML = `
             <td colspan="4" style="text-align:right;"><strong>Total Advance Paid</strong></td>
             <td colspan="2">
-            <span id="total-advance-paid">₦${salesOrders.reduce((acc, order) => acc + order.advance_paid, 0).toLocaleString()}</span>
+            <span id="total-advance-paid">₦${advancePaid.toLocaleString()}</span>
             </td>
             `;
 

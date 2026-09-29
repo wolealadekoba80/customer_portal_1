@@ -55,14 +55,28 @@ async function fetchOrders() {
             // Initialize the total amount and total outstanding
             let totalAmount = 0;
 
+            // Sort payments by posting_date in ascending order
+            payments.sort((a, b) => new Date(a.posting_date) - new Date(b.posting_date));
+
             payments.forEach(payment => {
                 // Add the item amount to the total amount
                 totalAmount += payment.paid_amount;
 
-                // Create row for each payment
+                // Collect all item names for this payment
+                let itemNames = [];
+                payment.items.forEach(item => {
+                    if (item.referenced_doc && item.referenced_doc.items) {
+                        item.referenced_doc.items.forEach(refItem => {
+                            itemNames.push(refItem.item_name); // Collect item names
+                        });
+                    }
+                });
+
+                // Create a row for the payment entry
                 const paymentRow = document.createElement('tr');
                 paymentRow.innerHTML = `
                     <td>${payment.name}</td>
+                    <td>${itemNames.join(', ')}</td> <!-- Join item names with commas -->
                     <td>${payment.posting_date}</td>
                     <td>${payment.status}</td>
                     <td>₦${payment.paid_amount.toLocaleString()}</td>
@@ -75,13 +89,12 @@ async function fetchOrders() {
             // After all payments are processed, add the total amount row
             const totalRow = document.createElement('tr');
             totalRow.innerHTML = `
-                <td colspan="3" style="text-align:right;"><strong>Total Amount</strong></td>
-                <td>
+                <td colspan="4" style="text-align:right;"><strong>Total Amount</strong></td>
+                <td colspan="3">
                     <span id="total-amount">₦${totalAmount.toLocaleString()}</span>
                 </td>
             `;
             orderItemsContainer.appendChild(totalRow);
-
         }
     } catch (error) {
         console.error('Error fetching orders:', error);

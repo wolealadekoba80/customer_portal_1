@@ -13,32 +13,40 @@ def enqueue_penalty_update(doc=None, method=None):
         job_name="Update Penalty and Create Invoice for Overdue Schedules"
     )
 
-def update_penalty_and_create_invoice(doc=None, method=None,**kwargs):
+def update_penalty_and_create_invoice(doc=None, method=None, **kwargs):
     # Extract the optional `run_date` if provided
     run_date = kwargs.get("run_date", None)
     frappe.logger().info(f"Running penalty update job for run_date: {run_date}...")
     try:
-        frappe.logger().info("Running overdue penalty update job...")
         today_date = datetime.today().date()
-        sales_orders = frappe.get_all(
-            'Sales Order',
-            filters={'docstatus': 0, 'custom_penality_rate': ['>', 0]},
-            fields=['name', 'customer', 'custom_penality_rate']
-        )
+
+        # If a single document is passed via hook, scope exclusively to that document
+        if doc:
+            if doc.docstatus != 0 or not flt(doc.get('custom_penality_rate')):
+                return
+            target_orders = [doc]
+            is_single_doc_hook = True
+        else:
+            # Batch scan for scheduled cron jobs only
+            so_names = frappe.get_all(
+                'Sales Order',
+                filters={'docstatus': 0, 'custom_penality_rate': ['>', 0]},
+                fields=['name']
+            )
+            target_orders = [frappe.get_doc('Sales Order', s.name) for s in so_names]
+            is_single_doc_hook = False
 
         next_run_dates = set()  # To track unique next run dates
 
-        for sales_order in sales_orders:
-            so_doc = frappe.get_doc('Sales Order', sales_order['name'])
+        for so_doc in target_orders:
             penalty_rate = flt(so_doc.custom_penality_rate)
-
             if not penalty_rate:
                 continue
 
             changes_made = False
 
-            for row in so_doc.payment_schedule:
-                if row.due_date and row.due_date < today_date and row.outstanding > 0:  # Overdue schedules with outstanding balance
+            for row in (so_doc.payment_schedule or []):
+                if row.due_date and row.due_date < today_date and flt(row.outstanding) > 0:  # Overdue schedules with outstanding balance
                     existing_penalty_invoice = frappe.db.exists(
                         'Sales Invoice',
                         {
@@ -53,7 +61,7 @@ def update_penalty_and_create_invoice(doc=None, method=None,**kwargs):
                         continue  # Skip if a penalty invoice already exists
 
                     # Calculate penalty
-                    penalty_amount = (row.payment_amount or 0) * penalty_rate / 100
+                    penalty_amount = (flt(row.payment_amount) or 0) * penalty_rate / 100
                     row.custom_penality_percent = penalty_rate
                     row.custom_penality_amount = penalty_amount
                     row.custom_payment_amount_penality = flt(row.payment_amount) + penalty_amount
@@ -77,14 +85,15 @@ def update_penalty_and_create_invoice(doc=None, method=None,**kwargs):
                     row.custom_penality_amount = 0
                     row.custom_payment_amount_penality = flt(row.payment_amount)
 
-            if changes_made and not flags.in_recursion:
+            if changes_made and not is_single_doc_hook and not flags.in_recursion:
                 flags.in_recursion = True
-                so_doc.save()  # Save the document only if changes are made
+                so_doc.save(ignore_permissions=True)
                 flags.in_recursion = False
 
-        # Enqueue the next job for unique future dates
-        for next_date in next_run_dates:
-            enqueue_penalty_update_on_date(next_date)
+        # Enqueue the next job for unique future dates (only when running scheduled batch)
+        if not is_single_doc_hook:
+            for next_date in next_run_dates:
+                enqueue_penalty_update_on_date(next_date)
 
     except Exception as e:
         frappe.logger().error(f"Error in penalty update: {e}")

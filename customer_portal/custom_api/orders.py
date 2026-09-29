@@ -14,7 +14,16 @@ def get_customer_sales_orders():
         return {'message': _('No customer found for this user.')}
 
     customer_name = customer[0].name
+    
+    
+      # Fetch all active quotations for the customer
+    payment_made = frappe.get_all('Payment Entry', 
+                                filters={'party_name': customer_name, 
+                                         'status': ['!=', 'Cancelled']},  # Exclude cancelled quotations
+                                fields=['name', 'posting_date', 'paid_amount', 'status','custom_amount_paid_till_date','custom_balance'])
 
+    
+    
     # Fetch sales orders for the customer
     sales_orders = frappe.get_all('Sales Order', 
                                   filters={'customer': customer_name,
@@ -34,10 +43,10 @@ def get_customer_sales_orders():
         payment_schedule = frappe.get_all('Payment Schedule',
                                           filters={'parent': order.name},
                                           fields=['payment_term', 'due_date', 'custom_penality_percent',
-                                                  'custom_penality_amount','custom_payment_amount_penality','invoice_portion', 'payment_amount', 'outstanding'])
+                                                  'custom_penality_amount','custom_payment_amount_penality','invoice_portion', 'payment_amount', 'paid_amount','outstanding'])
         order['payment_schedule'] = payment_schedule
 
-    return {'sales_orders': sales_orders}
+    return {'sales_orders': sales_orders,"payment_made":payment_made}
 
 
 @frappe.whitelist()

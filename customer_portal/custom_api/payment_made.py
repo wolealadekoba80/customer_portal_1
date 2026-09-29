@@ -17,10 +17,25 @@ def get_customer_payment_made():
 
     customer_name = customer[0].name
 
-    # Fetch all active quotations for the customer
-    quotations = frappe.get_all('Payment Entry', 
-                                filters={'party_name': customer_name, 
-                                         'status': ['!=', 'Cancelled']},  # Exclude cancelled quotations
-                                fields=['name', 'posting_date', 'paid_amount', 'status','custom_amount_paid_till_date','custom_balance'])
+    # Fetch all active payment entries for the customer
+    payments = frappe.get_all('Payment Entry', 
+                               filters={'party_name': customer_name, 
+                                        'status': ['!=', 'Cancelled']},  # Exclude cancelled payments
+                               fields=['name', 'posting_date', 'paid_amount', 'status', 'custom_amount_paid_till_date', 'custom_balance'])
 
-    return {'payments': quotations}
+    # Fetch items attached to each payment entry
+    for payment in payments:
+        payment_items = frappe.get_all('Payment Entry Reference',  # Assuming 'Payment Entry Reference' links items to payments
+                                        filters={'parent': payment['name']},
+                                        fields=['reference_name', 'reference_doctype', 'allocated_amount'])
+        
+        # Fetch the actual referenced items
+        for item in payment_items:
+            if item['reference_doctype'] and item['reference_name']:
+                # Retrieve the full document of the referenced item
+                referenced_doc = frappe.get_doc(item['reference_doctype'], item['reference_name'])
+                item['referenced_doc'] = referenced_doc  # Attach the full document to the item
+
+        payment['items'] = payment_items
+
+    return {'payments': payments}

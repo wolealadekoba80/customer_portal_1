@@ -237,11 +237,17 @@ body {
     width: 100%;
     font-size: 0.9em;
     opacity: 0;  /* Initially, the footer is fully visible */
-    transition: opacity 0.5s ease;  /* Fade-in and fade-out transition */
+    /* transition: opacity 0.5s ease;  Fade-in and fade-out transition */
     position: fixed;  /* Keep the footer fixed at the bottom */
     bottom: 0;  /* Place at the bottom of the screen */
     left: 0;
     z-index: 1;  /* Lower z-index to place it behind the toggle button */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+  /* Disappear effect on hover */
+.footer:hover {
+    /* opacity: 0; Make footer transparent */
+    visibility: hidden; /* Hide footer */
 }
 
 /* Individual column styling */
