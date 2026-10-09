@@ -1,30 +1,3245 @@
-<!-- customer_portal.html -->
-{% extends "templates/web.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or "AMGL | Customer Portal" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #3e4095;
+      --primary-hover: #313379;
+      --primary-light: #eef0fc;
+      --accent: #ed3237;
+      --accent-hover: #d2262b;
+      --accent-light: #fef2f2;
+      
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --info: #0284c7;
+      --info-light: #f0f9ff;
 
-{% block title %}
-Customer Portal
-{% endblock %}
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
 
-{% block page_content %}
-<div class="customer-portal">
-    <h1>Welcome, {{ frappe.session.user }}</h1>
-    <h2>{{ title }}</h2>
-    {% for sales_order in sales_orders %}
-    {{ sales_order.name }}
-    {% endfor %}
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --card-border: #e2e8f0;
 
-    <!-- <pre>{{ sales_orders }}</pre> -->
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-full: 9999px;
 
-    <!-- Example: Display Customer Sales Orders -->
-    <div>
-        <h3>My Sales Orders</h3>
-        <ul>
-            {% for sales_order in sales_orders %}
-                <li>
-                    <a href="/sales-order/{{ sales_order.name }}">{{ sales_order.name }}</a> - {{ sales_order.status }}
-                </li>
-            {% endfor %}
-        </ul>
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--slate-800);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .top-navbar {
+      height: 72px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      color: var(--primary);
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .staff-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--primary-light);
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--slate-200);
+    }
+
+    .staff-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--primary);
+      color: white;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .staff-select {
+      border: none;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .user-profile-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      background: var(--slate-100);
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .user-profile-menu:hover {
+      background: var(--slate-200);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+      text-align: left;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--slate-800);
+      max-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 0.72rem;
+      color: var(--slate-500);
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 52px;
+      right: 0;
+      width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .profile-dropdown.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--slate-700);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+      background: var(--slate-50);
+      color: var(--primary);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--slate-100);
+      margin: 6px 0;
+    }
+
+    /* Layout: Sidebar + Main Content */
+    .portal-container {
+      display: flex;
+      flex: 1;
+      width: 100%;
+    }
+
+    .portal-sidebar {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--slate-200);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      gap: 6px;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+
+    .nav-heading {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--slate-400);
+      padding: 12px 14px 6px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--slate-600);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .sidebar-link i {
+      font-size: 1.05rem;
+      width: 20px;
+      text-align: center;
+      color: var(--slate-400);
+      transition: var(--transition);
+    }
+
+    .sidebar-link:hover {
+      background: var(--slate-100);
+      color: var(--primary);
+    }
+
+    .sidebar-link:hover i {
+      color: var(--primary);
+    }
+
+    .sidebar-link.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .sidebar-link.active i {
+      color: var(--primary);
+    }
+
+    /* Main Content Area */
+    .portal-main {
+      flex: 1;
+      padding: 32px 40px;
+      max-width: 1320px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .portal-section {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .portal-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Page Header */
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--slate-900);
+    }
+
+    .page-desc {
+      font-size: 0.95rem;
+      color: var(--slate-500);
+      margin-top: 4px;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-light);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--slate-200);
+    }
+
+    .metric-card.primary::before { background: var(--primary); }
+    .metric-card.success::before { background: var(--success); }
+    .metric-card.accent::before { background: var(--accent); }
+    .metric-card.info::before { background: var(--info); }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-500);
+    }
+
+    .metric-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .metric-card.primary .metric-icon-wrap { background: var(--primary-light); color: var(--primary); }
+    .metric-card.success .metric-icon-wrap { background: var(--success-light); color: var(--success); }
+    .metric-card.accent .metric-icon-wrap { background: var(--accent-light); color: var(--accent); }
+    .metric-card.info .metric-icon-wrap { background: var(--info-light); color: var(--info); }
+
+    .metric-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.02em;
+    }
+
+    .metric-sub {
+      font-size: 0.8rem;
+      color: var(--slate-500);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Progress bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: var(--slate-100);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      border-radius: var(--radius-full);
+      transition: width 0.8s ease-in-out;
+    }
+
+    /* Milestone Alert Banner */
+    .milestone-banner {
+      background: linear-gradient(135deg, rgba(62, 64, 149, 0.04), rgba(237, 50, 55, 0.02));
+      border: 1px solid var(--primary-light);
+      border-left: 5px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .milestone-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .milestone-icon {
+      font-size: 1.75rem;
+      color: var(--primary);
+    }
+
+    .milestone-details h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .milestone-details p {
+      font-size: 0.85rem;
+      color: var(--slate-600);
+      margin-top: 2px;
+    }
+
+    /* Cards & Containers */
+    .portal-card {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+    }
+
+    .card-header-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.01em;
+    }
+
+    /* Property Order Cards */
+    .property-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 24px;
+    }
+
+    .property-card {
+      background: var(--surface);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .property-card:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .property-header {
+      background: linear-gradient(135deg, var(--slate-900), #1e293b);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .property-project {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.01em;
+    }
+
+    .property-order-id {
+      font-size: 0.78rem;
+      color: var(--slate-400);
+      margin-top: 2px;
+      font-family: 'Inter', monospace;
+    }
+
+    .property-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .property-unit {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--slate-800);
+    }
+
+    .financial-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      background: var(--slate-50);
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--slate-200);
+    }
+
+    .fin-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fin-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--slate-500);
+    }
+
+    .fin-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-top: 2px;
+    }
+
+    .fin-val.green { color: var(--success); }
+    .fin-val.red { color: var(--danger); }
+
+    .property-footer {
+      padding: 16px 24px;
+      background: var(--slate-50);
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      text-decoration: none;
+      line-height: 1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--slate-300);
+      color: var(--slate-700);
+    }
+
+    .btn-outline:hover {
+      background: var(--slate-100);
+      color: var(--slate-900);
+      border-color: var(--slate-400);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+
+    .portal-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    .portal-table th {
+      background: var(--slate-50);
+      padding: 14px 18px;
+      font-weight: 700;
+      color: var(--slate-600);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .portal-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--slate-100);
+      color: var(--slate-800);
+      vertical-align: middle;
+    }
+
+    .portal-table tbody tr:hover {
+      background: var(--slate-50);
+    }
+
+    .portal-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .badge-paid, .badge-full-payment {
+      background: var(--success-light);
+      color: #047857;
+    }
+    .badge-paid .badge-dot, .badge-full-payment .badge-dot { background: var(--success); }
+
+    .badge-part-payment, .badge-partly-paid {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .badge-part-payment .badge-dot, .badge-partly-paid .badge-dot { background: #3b82f6; }
+
+    .badge-overdue {
+      background: var(--danger-light);
+      color: #b91c1c;
+    }
+    .badge-overdue .badge-dot { background: var(--danger); }
+
+    .badge-unpaid, .badge-no-payment {
+      background: var(--slate-100);
+      color: var(--slate-700);
+    }
+    .badge-unpaid .badge-dot, .badge-no-payment .badge-dot { background: var(--slate-400); }
+
+    /* Modal */
+    .portal-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .portal-modal-backdrop.show {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .portal-modal {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      max-width: 960px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalSlideUp 0.3s ease-out;
+    }
+
+    @keyframes modalSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 22px 28px;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--slate-50);
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--slate-900);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      color: var(--slate-400);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      background: var(--slate-200);
+      color: var(--slate-700);
+    }
+
+    .modal-body {
+      padding: 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Guest Login Card */
+    .login-container {
+      max-width: 440px;
+      margin: 80px auto;
+      background: var(--surface);
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-xl);
+      text-align: center;
+    }
+
+    .login-logo {
+      height: 56px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--slate-700);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--slate-900);
+      color: white;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: toastIn 0.3s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .portal-sidebar {
+        display: none;
+      }
+      .portal-main {
+        padding: 20px;
+      }
+      .property-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Print Styles for Statement */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+
+    /* Metric Bold Typography */
+    .metric-value-thick {
+      font-size: 2.15rem !important;
+      font-weight: 900 !important;
+      letter-spacing: -0.03em !important;
+      line-height: 1.15 !important;
+    }
+
+    /* Floating Chat Widget */
+    .floating-chat-container {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 1050;
+    }
+
+    .floating-chat-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, #313379 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 8px 24px rgba(62, 64, 149, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .floating-chat-btn:hover {
+      transform: scale(1.08) translateY(-2px);
+      box-shadow: 0 12px 28px rgba(62, 64, 149, 0.55);
+    }
+
+    .chat-btn-pulse {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 13px;
+      height: 13px;
+      background: var(--success);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+    }
+
+    .chat-drawer {
+      position: fixed;
+      bottom: 96px;
+      right: 28px;
+      width: 400px;
+      max-width: calc(100vw - 36px);
+      height: 570px;
+      max-height: 84vh;
+      background: var(--surface);
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      z-index: 1050;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: chatSlideUp 0.25s ease-out forwards;
+    }
+
+    .chat-drawer.open {
+      display: flex !important;
+    }
+
+    @keyframes chatSlideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-drawer-header {
+      background: linear-gradient(135deg, var(--primary) 0%, #313379 100%);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-drawer-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .chat-drawer-header p {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 2px 0 0 0;
+    }
+
+    .chat-drawer-close {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .chat-drawer-close:hover {
+      opacity: 1;
+    }
+
+    .chat-drawer-body {
+      padding: 18px 20px;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body data-is-guest="{{ '1' if is_guest else '0' }}">
+
+  <!-- Top Navigation -->
+  <header class="top-navbar">
+    <a href="/" class="nav-brand" title="Return to Home">
+      <img src="{{ company_logo }}" alt="AMGL" class="brand-logo" onerror="this.src='/files/Metro New Logo Design.png'">
+      <div class="brand-text">
+        <span class="brand-title">AMGL</span>
+        <span class="brand-subtitle">CUSTOMER PORTAL</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      {% if is_guest %}
+      <a href="/" class="btn btn-outline" style="border: 1px solid var(--slate-300); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; text-decoration: none; color: var(--slate-700);">
+        <i class="fa-solid fa-house" style="color: var(--primary); margin-right: 6px;"></i> Home
+      </a>
+      {% else %}
+      <!-- Admin Switcher (Visible to Staff) -->
+      <div class="staff-switch-container" id="staffSwitchContainer" style="display: none;">
+        <span class="staff-badge">Staff Mode</span>
+        <select class="staff-select" id="staffCustomerSelect" onchange="onStaffSelectCustomer(this.value)">
+          <option value="">Select Customer View...</option>
+        </select>
+      </div>
+
+      <!-- User Menu -->
+      <div class="user-profile-menu" onclick="toggleProfileDropdown(event)" id="userProfileChip">
+        <div class="user-avatar" id="navAvatarInitials">{{ (user_full_name or 'AM')[:2].upper() }}</div>
+        <div class="user-details">
+          <span class="user-name" id="navUserName">{{ user_full_name or user }}</span>
+          <span class="user-role" id="navUserRole">{% if is_staff %}Administrator{% else %}Customer{% endif %}</span>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--slate-400);"></i>
+
+        <!-- Dropdown -->
+        <div class="profile-dropdown" id="profileDropdown">
+          <a class="dropdown-item" href="#profile" onclick="switchTab('profile')">
+            <i class="fa-solid fa-id-card"></i> My Profile
+          </a>
+          <a class="dropdown-item" href="#support" onclick="switchTab('support')">
+            <i class="fa-solid fa-headset"></i> Support &amp; Help
+          </a>
+          {% if is_staff %}
+          <a class="dropdown-item" href="/app" target="_blank">
+            <i class="fa-solid fa-desktop"></i> Go to ERP Desk
+          </a>
+          {% endif %}
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" style="color: var(--accent);" onclick="handleLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
-</div>
-{% endblock %}
+  </header>
+
+  {% if is_guest %}
+  <!-- Login View (Rendered directly for Guest) -->
+  <div id="loginView" style="display: block; padding: 40px 16px;">
+    <div class="login-container">
+      <img src="{{ company_logo }}" alt="AMGL" class="login-logo" onerror="this.src='/files/Metro New Logo Design.png'">
+
+      <!-- Sign In View -->
+      <div id="signInSection">
+        <h2 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 6px; color: var(--slate-900);">Customer Portal</h2>
+        <p style="font-size: 0.88rem; color: var(--slate-500); margin-bottom: 24px;">Sign in to view your orders, installment schedules, receipts, and statement of account.</p>
+
+        <div id="loginAlert" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.88rem; margin-bottom: 20px; text-align: left;"></div>
+
+        <form onsubmit="handleLogin(event)" id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" autocomplete="username" required autofocus>
+          </div>
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
+              <a href="javascript:void(0)" onclick="showResetSection()" style="font-size: 0.78rem; font-weight: 600; color: var(--primary); text-decoration: none;">Forgot / Set Password?</a>
+            </div>
+            <div style="position: relative;">
+              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password" required style="padding-right: 44px;">
+              <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--slate-400); cursor: pointer; padding: 4px;" title="Show/Hide password">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-weight: 700;" id="loginSubmitBtn">
+            <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Sign In to Customer Portal
+          </button>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--slate-200); font-size: 0.85rem; color: var(--slate-500);">
+          <span>First time accessing the portal?</span><br>
+          <a href="javascript:void(0)" onclick="showResetSection()" style="color: var(--primary); font-weight: 700; text-decoration: none;">
+            Activate your account / Set password &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Reset / Activation View -->
+      <div id="resetSection" style="display: none;">
+        <h2 style="font-weight: 800; font-size: 1.4rem; margin-bottom: 6px; color: var(--slate-900);">Account Setup &amp; Reset</h2>
+        <p style="font-size: 0.85rem; color: var(--slate-500); margin-bottom: 24px;">Enter your registered email address. We will send you a secure link to create or reset your password.</p>
+
+        <div id="resetAlert" style="display: none; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.88rem; margin-bottom: 20px; text-align: left;"></div>
+
+        <form onsubmit="handleResetPassword(event)" id="resetForm">
+          <div class="form-group">
+            <label class="form-label" for="resetEmail">Registered Email Address</label>
+            <input type="email" id="resetEmail" class="form-input" placeholder="you@example.com" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-weight: 700; margin-bottom: 12px;" id="resetSubmitBtn">
+            <i class="fa-solid fa-paper-plane mr-2"></i> Send Setup / Reset Link
+          </button>
+          <button type="button" class="btn btn-outline" style="width: 100%; justify-content: center; padding: 12px;" onclick="showSignInSection()">
+            &larr; Back to Sign In
+          </button>
+        </form>
+      </div>
+
+      <div style="margin-top: 24px; font-size: 0.82rem; color: var(--slate-400);">
+        Abdul-Metro Group Limited (AMGL)<br>
+        Need help? Email <a href="mailto:it@metroandcastle.com" style="color: var(--slate-600); font-weight: 600;">it@metroandcastle.com</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- Authenticated Portal View -->
+  <div class="portal-container" id="portalApp" style="display: flex;">
+    <!-- Sidebar -->
+    <aside class="portal-sidebar">
+      <div class="nav-heading">Main Menu</div>
+      <a class="sidebar-link active" onclick="switchTab('overview')" id="nav-overview">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </a>
+      <a class="sidebar-link" onclick="switchTab('orders')" id="nav-orders">
+        <i class="fa-solid fa-building"></i> My Properties &amp; Orders
+      </a>
+      <a class="sidebar-link" onclick="switchTab('payments')" id="nav-payments">
+        <i class="fa-solid fa-receipt"></i> Payment History
+      </a>
+      <a class="sidebar-link" onclick="switchTab('invoices')" id="nav-invoices">
+        <i class="fa-solid fa-file-invoice-dollar"></i> Sales Invoices
+      </a>
+      <a class="sidebar-link" onclick="switchTab('statement')" id="nav-statement">
+        <i class="fa-solid fa-file-lines"></i> Statement of Account
+      </a>
+      <a class="sidebar-link" onclick="switchTab('deliveries')" id="nav-deliveries">
+        <i class="fa-solid fa-key"></i> Handover &amp; Delivery
+      </a>
+
+      <div class="nav-heading" style="margin-top: 14px;">Services</div>
+      <a class="sidebar-link" onclick="switchTab('documents')" id="nav-documents">
+        <i class="fa-solid fa-folder-closed"></i> Document Vault
+      </a>
+      <a class="sidebar-link" onclick="switchTab('support')" id="nav-support">
+        <i class="fa-solid fa-headset"></i> Support &amp; Inquiries
+      </a>
+      <a class="sidebar-link" onclick="switchTab('profile')" id="nav-profile">
+        <i class="fa-solid fa-user-gear"></i> Account Profile
+      </a>
+
+      <div style="margin-top: auto; padding-top: 20px;">
+        <a href="https://abdulmetrogroup.com/" target="_blank" class="sidebar-link" style="font-size: 0.8rem; color: var(--slate-400);">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Website
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="portal-main">
+
+      <!-- SECTION 1: OVERVIEW -->
+      <section class="portal-section active" id="sec-overview">
+        <div class="page-header">
+          <h1 class="page-title" id="welcomeSubscriberName">Welcome Back</h1>
+          <p class="page-desc">Here is the real-time financial progress and schedule of your property portfolio.</p>
+        </div>
+
+        <!-- Milestone Alert -->
+        <div class="milestone-banner" id="upcomingMilestoneBanner" style="display: none;">
+          <div class="milestone-info">
+            <i class="fa-solid fa-bell milestone-icon"></i>
+            <div class="milestone-details">
+              <h4 id="bannerMilestoneTitle">Upcoming Milestone Due</h4>
+              <p id="bannerMilestoneDesc">Your next scheduled installment is approaching.</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="switchTab('orders')">View Schedule</button>
+        </div>
+
+        <!-- 3 Key Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-card primary">
+            <div class="metric-header">
+              <span class="metric-label">Total Contract Value</span>
+              <div class="metric-icon-wrap"><i class="fa-solid fa-building-circle-check"></i></div>
+            </div>
+            <div class="metric-value" id="cardContractValue">₦0.00</div>
+            <div class="metric-sub"><span id="cardOrderCount">0</span> Property Subscriptions</div>
+          </div>
+
+          <div class="metric-card success">
+            <div class="metric-header">
+              <span class="metric-label">Total Paid to Date</span>
+              <div class="metric-icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+            <div class="metric-value" style="color: var(--success);" id="cardTotalPaid">₦0.00</div>
+            <div class="metric-sub">
+              <span id="cardPercentPaid">0%</span> Paid of total commitment
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="cardProgressBar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="metric-card accent">
+            <div class="metric-header">
+              <span class="metric-label">Current Outstanding</span>
+              <div class="metric-icon-wrap"><i class="fa-solid fa-scale-unbalanced"></i></div>
+            </div>
+            <div class="metric-value metric-value-thick" style="color: var(--accent);" id="cardOutstanding">₦0.00</div>
+            <div class="metric-sub" id="cardOverdueSub">No overdue balances</div>
+          </div>
+        </div>
+
+        <!-- Properties Quick Preview -->
+        <div class="portal-card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">My Properties</h2>
+              <p class="page-desc">Overview of your real estate acquisitions and milestone fulfillment.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="switchTab('orders')">View All Orders &rarr;</button>
+          </div>
+          <div class="property-cards-grid" id="dashboardPropertiesList">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: MY ORDERS & PROPERTIES -->
+      <section class="portal-section" id="sec-orders">
+        <div class="page-header">
+          <h1 class="page-title">Property Subscriptions &amp; Orders</h1>
+          <p class="page-desc">Track your property units, milestone installment waterfall, and payments.</p>
+        </div>
+
+        <div class="property-cards-grid" id="fullOrdersList">
+          <!-- Loaded dynamically -->
+        </div>
+      </section>
+
+      <!-- SECTION 3: PAYMENT HISTORY -->
+      <section class="portal-section" id="sec-payments">
+        <div class="page-header">
+          <h1 class="page-title">Payment History &amp; Receipts</h1>
+          <p class="page-desc">All verified direct payments and invoice allocations recorded for your account.</p>
+        </div>
+
+        <div class="portal-card">
+          <div class="table-container">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Payment Date</th>
+                  <th>Payment Method</th>
+                  <th>Amount Paid</th>
+                  <th style="text-align: right;">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--slate-400);">Loading payment records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: SALES INVOICES -->
+      <section class="portal-section" id="sec-invoices">
+        <div class="page-header">
+          <h1 class="page-title">Sales Invoices</h1>
+          <p class="page-desc">Official billing records issued against your milestones and contracts.</p>
+        </div>
+
+        <div class="portal-card">
+          <div class="table-container">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Posting Date</th>
+                  <th>Due Date</th>
+                  <th>Grand Total</th>
+                  <th>Outstanding</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="invoicesTableBody">
+                <tr><td colspan="6" style="text-align: center; color: var(--slate-400);">Loading invoices...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: STATEMENT OF ACCOUNT -->
+      <section class="portal-section" id="sec-statement">
+        <div class="page-header">
+          <h1 class="page-title">Statement of Account</h1>
+          <p class="page-desc">View your chronological ledger statement and transaction history.</p>
+        </div>
+
+        <div class="portal-card">
+          <div class="card-header-flex">
+            <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+              <div>
+                <label class="form-label" style="margin-bottom: 2px;">From Date</label>
+                <input type="date" id="stmtFromDate" class="form-input" style="padding: 8px 12px; font-size: 0.85rem;">
+              </div>
+              <div>
+                <label class="form-label" style="margin-bottom: 2px;">To Date</label>
+                <input type="date" id="stmtToDate" class="form-input" style="padding: 8px 12px; font-size: 0.85rem;">
+              </div>
+              <div style="align-self: flex-end;">
+                <button class="btn btn-outline btn-sm" onclick="loadStatement()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Update Statement
+                </button>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-sm" onclick="downloadStatementPdf()" id="downloadStmtBtn">
+                <i class="fa-solid fa-file-pdf mr-1"></i> Download Statement (PDF)
+              </button>
+            </div>
+          </div>
+
+          <!-- Printable Ledger Section -->
+          <div id="print-area">
+            <div class="financial-summary-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+              <div class="fin-item">
+                <span class="fin-label">Opening Balance</span>
+                <span class="fin-val" id="stmtOpeningBal">₦0.00</span>
+              </div>
+              <div class="fin-item">
+                <span class="fin-label">Total Invoiced (Debits)</span>
+                <span class="fin-val" id="stmtTotalDebit">₦0.00</span>
+              </div>
+              <div class="fin-item">
+                <span class="fin-label">Total Paid (Credits)</span>
+                <span class="fin-val green" id="stmtTotalCredit">₦0.00</span>
+              </div>
+              <div class="fin-item">
+                <span class="fin-label">Closing Balance</span>
+                <span class="fin-val red" id="stmtClosingBal">₦0.00</span>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="portal-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Voucher Type</th>
+                    <th>Voucher No</th>
+                    <th>Debit (Billed)</th>
+                    <th>Credit (Paid)</th>
+                    <th>Running Balance</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="statementTableBody">
+                  <tr><td colspan="7" style="text-align: center; color: var(--slate-400);">No statement entries to display.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: DELIVERIES & HANDOVER -->
+      <section class="portal-section" id="sec-deliveries">
+        <div class="page-header">
+          <h1 class="page-title">Handover &amp; Delivery</h1>
+          <p class="page-desc">Track physical delivery and milestone handover records.</p>
+        </div>
+
+        <div class="portal-card">
+          <div class="table-container">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th>Delivery Note #</th>
+                  <th>Date</th>
+                  <th>Items / Unit Delivered</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="deliveriesTableBody">
+                <tr><td colspan="4" style="text-align: center; color: var(--slate-400);">No delivery notes recorded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: DOCUMENT VAULT -->
+      <section class="portal-section" id="sec-documents">
+        <div class="page-header">
+          <h1 class="page-title">Document Vault</h1>
+          <p class="page-desc">Secure depository for your contracts, allocation letters, and property deeds.</p>
+        </div>
+
+        <div class="portal-card">
+          <div class="card-header-flex">
+            <h2 class="card-title">Shared Documents</h2>
+            <button class="btn btn-primary btn-sm" onclick="openUploadModal()">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Document
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th>Document Name</th>
+                  <th>Date Uploaded</th>
+                  <th>Size</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="documentsTableBody">
+                <tr><td colspan="4" style="text-align: center; color: var(--slate-400);">Loading documents...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 8: SUPPORT & INQUIRIES -->
+      <section class="portal-section" id="sec-support">
+        <div class="page-header">
+          <h1 class="page-title">Support &amp; Inquiries</h1>
+          <p class="page-desc">Direct line to our Sales, Customer Relationship, and Credit Control teams.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+          <div class="portal-card">
+            <h2 class="card-title" style="margin-bottom: 16px;"><i class="fa-solid fa-headset mr-2" style="color: var(--primary);"></i> Log a Support Ticket / Complaint</h2>
+            <form onsubmit="handleSendSupport(event)">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" for="supportCategory">Category</label>
+                  <select id="supportCategory" class="form-input" style="padding: 10px 12px;" required>
+                    <option value="Payment &amp; Receipt Allocation">Payment &amp; Receipt Allocation</option>
+                    <option value="Statement of Account">Statement of Account Discrepancy</option>
+                    <option value="Deed &amp; Documentation">Deed &amp; Documentation Request</option>
+                    <option value="Property Maintenance &amp; Inspection">Property Maintenance &amp; Inspection</option>
+                    <option value="General Inquiry" selected>General Inquiry</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" for="supportPriority">Priority</label>
+                  <select id="supportPriority" class="form-input" style="padding: 10px 12px;">
+                    <option value="Low">Low (General)</option>
+                    <option value="Medium" selected>Medium (Standard)</option>
+                    <option value="High">High (Important)</option>
+                    <option value="Urgent">Urgent (Critical)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="supportSubject">Subject / Short Summary</label>
+                <input type="text" id="supportSubject" class="form-input" placeholder="e.g. Discrepancy on payment receipt, milestone update" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="supportMessage">Detailed Message / Complaint</label>
+                <textarea id="supportMessage" class="form-input" rows="4" placeholder="Please provide specific details, voucher or receipt numbers if applicable..." required></textarea>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" id="supportSendBtn">
+                  <i class="fa-solid fa-paper-plane mr-2"></i> Submit Support Ticket
+                </button>
+                <a href="https://wa.me/2349154793665?text=Hello%20AMGL%20Support%2C%20I%20need%20assistance%20with%20my%20customer%20account" target="_blank" class="btn" style="background: #25D366; color: #ffffff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37,211,102,0.25);">
+                  <i class="fa-brands fa-whatsapp" style="font-size: 1.15rem;"></i> Chat on WhatsApp
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <div class="portal-card">
+            <h2 class="card-title" style="margin-bottom: 16px;"><i class="fa-solid fa-building mr-2" style="color: var(--primary);"></i> Office &amp; Contact Info</h2>
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.88rem; color: var(--slate-700);">
+              <div>
+                <strong>Head Office:</strong><br>
+                Metro Mall, Atlantic Layout Estates, Lekki Garden Phase 4 Road,<br>
+                General Paint B/Stop, Lekki Expressway, Lagos, Nigeria.
+              </div>
+              <div>
+                <strong>Support Desk Email:</strong><br>
+                <a href="mailto:it@metroandcastle.com" style="color: var(--primary); font-weight: 600;">it@metroandcastle.com</a>
+              </div>
+              <div>
+                <strong>Direct Phone / WhatsApp:</strong><br>
+                +234 915 479 3665
+              </div>
+              <div>
+                <strong>Business Hours:</strong><br>
+                Monday &ndash; Friday: 8:00 AM &ndash; 5:00 PM (WAT)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Support Tickets History -->
+        <div class="portal-card" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h2 class="card-title" style="margin: 0;"><i class="fa-solid fa-ticket mr-2" style="color: var(--primary);"></i> My Support Tickets</h2>
+              <p style="font-size: 0.82rem; color: var(--slate-500); margin: 3px 0 0 0;">Track status, responses, and resolution history for your requests.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="loadCustomerTickets()" style="padding: 6px 12px; font-size: 0.82rem;">
+              <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh Tickets
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th style="width: 14%;">Ticket #</th>
+                  <th style="width: 18%;">Category</th>
+                  <th style="width: 30%;">Subject</th>
+                  <th style="width: 10%;">Priority</th>
+                  <th style="width: 12%;">Status</th>
+                  <th style="width: 10%;">Date</th>
+                  <th style="width: 6%; text-align: center;">Chat</th>
+                </tr>
+              </thead>
+              <tbody id="customerTicketsTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--slate-400); padding: 24px;">Click the Support tab to view your active and resolved tickets.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CUSTOMER TICKET CONVERSATION MODAL -->
+        <div id="customerTicketModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
+          <div style="background: #ffffff; border-radius: var(--radius-lg); width: 100%; max-width: 660px; height: 600px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-xl); border: 1px solid var(--slate-200);">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, var(--primary) 0%, #1e1b4b 100%); color: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 800; font-size: 1.05rem;" id="modalTicketId">#ISS-2026-00000</span>
+                  <span id="modalTicketStatusBadge" style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.2);">Open</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 3px; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="modalTicketSubject">Subject</div>
+              </div>
+              <button onclick="closeCustomerTicketModal()" style="background: transparent; border: none; color: #ffffff; font-size: 1.25rem; cursor: pointer; opacity: 0.85; padding: 4px;">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <!-- Meta Bar -->
+            <div style="background: #f8fafc; border-bottom: 1px solid var(--slate-200); padding: 8px 20px; display: flex; gap: 16px; font-size: 0.78rem; color: var(--slate-600); flex-shrink: 0; flex-wrap: wrap;">
+              <span><strong>Category:</strong> <span id="modalTicketCategory">General</span></span>
+              <span><strong>Priority:</strong> <span id="modalTicketPriority">Medium</span></span>
+              <span><strong>Created:</strong> <span id="modalTicketDate">--</span></span>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="modalTicketTimeline" style="flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; background: #f8fafc;">
+              <div style="text-align: center; color: var(--slate-400); padding: 30px;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading messages...</div>
+            </div>
+
+            <!-- Reply Box Footer -->
+            <div style="padding: 12px 18px; background: #ffffff; border-top: 1px solid var(--slate-200); flex-shrink: 0;">
+              <form onsubmit="handleCustomerTicketReply(event)" style="display: flex; gap: 8px; align-items: flex-end;">
+                <textarea id="modalTicketReplyInput" rows="2" class="form-input" style="padding: 8px 12px; font-size: 0.85rem; resize: none;" placeholder="Type your follow-up message or response to AMGL Support..." required></textarea>
+                <button type="submit" id="modalTicketReplyBtn" class="btn btn-primary" style="height: 38px; padding: 0 16px; flex-shrink: 0; font-weight: 700; font-size: 0.85rem;">
+                  <i class="fa-solid fa-paper-plane mr-1"></i> Send
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 9: ACCOUNT PROFILE -->
+      <section class="portal-section" id="sec-profile">
+        <div class="page-header">
+          <h1 class="page-title">Account Profile</h1>
+          <p class="page-desc">Your subscriber registration information recorded in our ERP system.</p>
+        </div>
+
+        <div class="portal-card" style="max-width: 600px;">
+          <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 24px;">
+            <div class="user-avatar" style="width: 64px; height: 64px; font-size: 1.5rem;" id="profileAvatar">MC</div>
+            <div>
+              <h3 style="font-weight: 800; font-size: 1.25rem;" id="profileCustName">Subscriber Name</h3>
+              <p style="color: var(--slate-500); font-size: 0.85rem;" id="profileCustEmail">email@example.com</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
+            <div>
+              <label class="form-label">Customer ID / ERP Code</label>
+              <input type="text" id="profileCustCode" class="form-input" readonly>
+            </div>
+            <div>
+              <label class="form-label">Primary Mobile / Telephone</label>
+              <input type="text" id="profileCustPhone" class="form-input" readonly>
+            </div>
+            <div>
+              <label class="form-label">Customer Group &amp; Territory</label>
+              <input type="text" id="profileCustTerritory" class="form-input" readonly>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: RECEIVABLES SCHEDULE & WATERFALL -->
+  <div class="portal-modal-backdrop" id="scheduleModal">
+    <div class="portal-modal">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modalOrderTitle">Property Receivables Schedule</h3>
+          <p style="font-size: 0.82rem; color: var(--slate-500); margin-top: 2px;" id="modalOrderSub">Milestone Waterfall Breakdown</p>
+        </div>
+        <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="financial-summary-grid" style="margin-bottom: 20px;">
+          <div class="fin-item">
+            <span class="fin-label">Order Grand Total</span>
+            <span class="fin-val" id="modalGrandTotal">₦0.00</span>
+          </div>
+          <div class="fin-item">
+            <span class="fin-label">Reconciled Collections</span>
+            <span class="fin-val green" id="modalTotalPaid">₦0.00</span>
+          </div>
+          <div class="fin-item">
+            <span class="fin-label">Net Outstanding Balance</span>
+            <span class="fin-val red" id="modalOutstanding">₦0.00</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <span style="font-weight: 700; font-size: 0.9rem; color: var(--slate-700);">Installment Milestones:</span>
+          <button class="btn btn-outline btn-sm" id="modalSyncBtn" onclick="syncCurrentSchedule()">
+            <i class="fa-solid fa-arrows-rotate"></i> Sync Schedule
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Due Date</th>
+                <th>Expected Installment</th>
+                <th>Amount Paid</th>
+                <th>Milestone Balance</th>
+                <th>Total Outstanding</th>
+                <th>Penalty</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="modalScheduleTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD DOCUMENT -->
+  <div class="portal-modal-backdrop" id="uploadModal">
+    <div class="portal-modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Document</h3>
+        <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleUploadSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="docFileInput">Select File (PDF, DOCX, PNG, JPG)</label>
+            <input type="file" id="docFileInput" class="form-input" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" id="uploadSubmitBtn">
+            Upload to Vault
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Floating Chat Button (Available on both Guest Login & Authenticated Portal) -->
+  <div class="floating-chat-container" id="floatingChatContainer">
+    <button class="floating-chat-btn" id="floatingChatBtn" onclick="toggleChatDrawer()" title="Need Help? Chat with us">
+      <i class="fa-solid fa-comments" id="chatBtnIcon"></i>
+      <span class="chat-btn-pulse"></span>
+    </button>
+  </div>
+
+  <!-- Quick Support Chat Drawer (Full Duplex Support Hub) -->
+  <div class="chat-drawer" id="chatDrawer">
+    <div class="chat-drawer-header">
+      <div>
+        <h3>AMGL Support Hub</h3>
+        <p><i class="fa-solid fa-circle" style="color: var(--success); font-size: 0.6rem; margin-right: 4px;"></i> Online &bull; Direct Support</p>
+      </div>
+      <button class="chat-drawer-close" onclick="toggleChatDrawer()">&times;</button>
+    </div>
+
+    <!-- Navigation Tabs inside Drawer for Logged In Customer -->
+    {% if not is_guest %}
+    <div style="display: flex; background: #f8fafc; border-bottom: 1px solid var(--slate-200); padding: 6px 12px; gap: 8px; flex-shrink: 0;">
+      <button class="drawer-tab-btn active" data-dtab="tickets" onclick="switchDrawerTab('tickets')" style="flex: 1; padding: 7px 10px; border: none; background: #ffffff; color: var(--primary); font-weight: 700; font-size: 0.78rem; border-radius: var(--radius-sm); box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer;">
+        <i class="fa-solid fa-comments mr-1"></i> My Tickets
+      </button>
+      <button class="drawer-tab-btn" data-dtab="new" onclick="switchDrawerTab('new')" style="flex: 1; padding: 7px 10px; border: none; background: transparent; color: var(--slate-600); font-weight: 600; font-size: 0.78rem; border-radius: var(--radius-sm); cursor: pointer;">
+        <i class="fa-solid fa-plus mr-1"></i> New Ticket
+      </button>
+    </div>
+    {% endif %}
+
+    <div class="chat-drawer-body" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 14px;">
+      
+      {% if not is_guest %}
+      <!-- DRAWER PANE: MY TICKETS & CONVERSATION -->
+      <div id="drawerPaneTickets" style="flex: 1; display: flex; flex-direction: column;">
+        <!-- Tickets list inside drawer -->
+        <div id="drawerTicketsList" style="flex: 1; overflow-y: auto;">
+          <div id="drawerTicketsLoading" style="text-align: center; color: var(--slate-400); padding: 25px; font-size: 0.82rem;">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading conversations...
+          </div>
+          <div id="drawerTicketsContainer"></div>
+        </div>
+
+        <!-- Single Ticket Chat inside drawer (hidden by default) -->
+        <div id="drawerThreadView" style="display: none; flex: 1; flex-direction: column; height: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--slate-200); margin-bottom: 8px;">
+            <button onclick="backToDrawerTickets()" style="background: transparent; border: none; color: var(--primary); font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0;">
+              <i class="fa-solid fa-arrow-left"></i> All Tickets
+            </button>
+            <span id="drawerThreadStatusBadge" style="font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #eff6ff; color: #1d4ed8;">Open</span>
+          </div>
+
+          <div style="font-weight: 700; font-size: 0.82rem; color: var(--slate-800); margin-bottom: 2px;" id="drawerThreadSubject"></div>
+          <div style="font-size: 0.7rem; color: var(--slate-500); margin-bottom: 8px;" id="drawerThreadMeta"></div>
+
+          <!-- Messages Stream inside drawer -->
+          <div id="drawerThreadMessages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #f8fafc; border-radius: var(--radius-sm); border: 1px solid var(--slate-200); min-height: 220px; max-height: 270px;"></div>
+
+          <!-- Reply Composer -->
+          <form onsubmit="handleDrawerReplySubmit(event)" style="display: flex; gap: 6px; margin-top: 10px; align-items: flex-end;">
+            <textarea id="drawerReplyInput" rows="2" class="form-input" style="padding: 6px 10px; font-size: 0.82rem; resize: none; flex: 1;" placeholder="Type reply to support..." required></textarea>
+            <button type="submit" id="drawerReplyBtn" class="btn btn-primary" style="height: 36px; padding: 0 12px; flex-shrink: 0; font-size: 0.8rem;">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- DRAWER PANE: NEW TICKET FORM -->
+      {% if is_guest %}
+      <div id="drawerPaneNew" style="display: block;">
+      {% else %}
+      <div id="drawerPaneNew" style="display: none;">
+      {% endif %}
+        <!-- WhatsApp Direct Action -->
+        <a href="https://wa.me/2349154793665?text=Hello%20AMGL%20Support%2C%20I%20need%20assistance%20with%20my%20customer%20account" target="_blank" class="btn" style="background: #25D366; color: #ffffff; width: 100%; justify-content: center; padding: 8px 12px; font-weight: 700; font-size: 0.82rem; margin-bottom: 12px; border-radius: var(--radius-sm); text-decoration: none; box-shadow: 0 2px 6px rgba(37,211,102,0.25);">
+          <i class="fa-brands fa-whatsapp" style="font-size: 1.1rem; margin-right: 6px;"></i> Chat live on WhatsApp
+        </a>
+        <div style="display: flex; align-items: center; text-align: center; color: var(--slate-400); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
+          <span style="flex: 1; border-bottom: 1px solid var(--slate-200);"></span>
+          <span style="padding: 0 8px;">or log support ticket</span>
+          <span style="flex: 1; border-bottom: 1px solid var(--slate-200);"></span>
+        </div>
+
+        <div id="floatChatAlert" style="display: none; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.78rem; margin-bottom: 10px;"></div>
+        <form onsubmit="handleFloatingChatSubmit(event)" id="floatingChatForm">
+          {% if is_guest %}
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 3px;" for="floatChatEmail">Your Email Address</label>
+            <input type="email" id="floatChatEmail" class="form-input" style="padding: 7px 10px; font-size: 0.82rem;" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 3px;" for="floatChatName">Full Name (Optional)</label>
+            <input type="text" id="floatChatName" class="form-input" style="padding: 7px 10px; font-size: 0.82rem;" placeholder="Your Full Name">
+          </div>
+          {% endif %}
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 3px;" for="floatChatCategory">Category</label>
+            <select id="floatChatCategory" class="form-input" style="padding: 7px 10px; font-size: 0.82rem;">
+              <option value="Payment &amp; Receipt Allocation">Payment &amp; Receipt Allocation</option>
+              <option value="Statement of Account">Statement of Account Discrepancy</option>
+              <option value="Deed &amp; Documentation">Deed &amp; Documentation Request</option>
+              <option value="Property Maintenance &amp; Inspection">Property Maintenance &amp; Inspection</option>
+              <option value="General Inquiry" selected>General Inquiry</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 3px;" for="floatChatSubject">Subject</label>
+            <input type="text" id="floatChatSubject" class="form-input" style="padding: 7px 10px; font-size: 0.82rem;" placeholder="e.g. Account setup, payment confirmation" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 3px;" for="floatChatMessage">Message Details</label>
+            <textarea id="floatChatMessage" class="form-input" style="padding: 7px 10px; font-size: 0.82rem;" rows="3" placeholder="How can our customer team help you today?" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 9px; font-weight: 700; font-size: 0.82rem;" id="floatChatSubmitBtn">
+            <i class="fa-solid fa-paper-plane mr-1"></i> Submit Support Ticket
+          </button>
+        </form>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 8px; border-top: 1px solid var(--slate-200); font-size: 0.72rem; color: var(--slate-500); text-align: center;">
+        Direct Email: <a href="mailto:it@metroandcastle.com" style="color: var(--primary); font-weight: 600;">it@metroandcastle.com</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script>
+    let globalContext = null;
+    let globalOrders = [];
+    let activeCustomerOverride = null;
+    let currentModalOrder = null;
+
+    function formatCurrency(amount, currency = '₦') {
+      const val = parseFloat(amount || 0);
+      return `${currency} ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function showToast(message, icon = 'fa-circle-check') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.portal-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+
+      const sec = document.getElementById(`sec-${tabId}`);
+      const link = document.getElementById(`nav-${tabId}`);
+      if (sec) sec.classList.add('active');
+      if (link) link.classList.add('active');
+
+      window.location.hash = tabId;
+
+      // Lazy load tab data
+      if (tabId === 'orders') loadOrders();
+      if (tabId === 'payments') loadPayments();
+      if (tabId === 'invoices') loadInvoices();
+      if (tabId === 'statement') loadStatement();
+      if (tabId === 'deliveries') loadDeliveries();
+      if (tabId === 'documents') loadDocuments();
+      if (tabId === 'support') loadCustomerTickets();
+    }
+
+    // Toggle Dropdown
+    function toggleProfileDropdown(e) {
+      e.stopPropagation();
+      document.getElementById('profileDropdown').classList.toggle('show');
+    }
+
+    window.onclick = function() {
+      document.getElementById('profileDropdown').classList.remove('show');
+    };
+
+    // Initialize Portal
+    async function initPortal() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_portal_context${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        const ctx = data.message;
+        globalContext = ctx;
+
+        if (ctx.is_guest) {
+          window.location.reload();
+          return;
+        }
+
+        // Check if Staff Mode
+        if (ctx.is_staff) {
+          const staffContainer = document.getElementById('staffSwitchContainer');
+          staffContainer.style.display = 'flex';
+          const select = document.getElementById('staffCustomerSelect');
+          select.innerHTML = '<option value="">Select Subscriber View...</option>';
+          (ctx.customer_list || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.name;
+            opt.textContent = `${c.customer_name} (${c.name})`;
+            if (activeCustomerOverride === c.name) opt.selected = true;
+            select.appendChild(opt);
+          });
+        }
+
+        // Render User and Customer Info
+        const custName = ctx.customer ? ctx.customer.customer_name : ctx.user.full_name;
+        document.getElementById('navUserName').textContent = custName;
+        document.getElementById('welcomeSubscriberName').textContent = `Welcome back, ${custName}`;
+        
+        // Initials
+        const initials = custName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        document.getElementById('navAvatarInitials').textContent = initials;
+        document.getElementById('profileAvatar').textContent = initials;
+
+        if (ctx.customer) {
+          document.getElementById('navUserRole').textContent = ctx.customer.name;
+          if (document.getElementById('cardCustomerCode')) {
+            document.getElementById('cardCustomerCode').textContent = ctx.customer.name;
+          }
+          if (document.getElementById('cardCustomerGroup')) {
+            document.getElementById('cardCustomerGroup').textContent = ctx.customer.customer_group || 'Verified Customer';
+          }
+          
+          if (document.getElementById('profileCustName')) document.getElementById('profileCustName').textContent = ctx.customer.customer_name;
+          if (document.getElementById('profileCustEmail')) document.getElementById('profileCustEmail').textContent = ctx.customer.email_id || ctx.user.email;
+          if (document.getElementById('profileCustCode')) document.getElementById('profileCustCode').value = ctx.customer.name;
+          if (document.getElementById('profileCustPhone')) document.getElementById('profileCustPhone').value = ctx.customer.mobile_no || 'N/A';
+          if (document.getElementById('profileCustTerritory')) document.getElementById('profileCustTerritory').value = `${ctx.customer.customer_group} • ${ctx.customer.territory}`;
+        }
+
+        // Render Overview Metrics
+        const m = ctx.metrics || {};
+        document.getElementById('cardContractValue').textContent = formatCurrency(m.total_contract_value);
+        document.getElementById('cardOrderCount').textContent = m.total_orders || 0;
+        document.getElementById('cardTotalPaid').textContent = formatCurrency(m.total_paid);
+        document.getElementById('cardPercentPaid').textContent = `${m.percent_paid || 0}%`;
+        document.getElementById('cardProgressBar').style.width = `${Math.min(100, m.percent_paid || 0)}%`;
+        document.getElementById('cardOutstanding').textContent = formatCurrency(m.total_outstanding);
+
+        if (m.overdue_count > 0) {
+          document.getElementById('cardOverdueSub').innerHTML = `<span style="color: var(--accent); font-weight: 700;"><i class="fa-solid fa-triangle-exclamation"></i> ${m.overdue_count} overdue milestone(s)</span>`;
+        } else {
+          document.getElementById('cardOverdueSub').textContent = 'All installments up to date';
+        }
+
+        // Upcoming milestone banner
+        if (m.upcoming_milestone) {
+          const up = m.upcoming_milestone;
+          document.getElementById('upcomingMilestoneBanner').style.display = 'flex';
+          document.getElementById('bannerMilestoneTitle').textContent = `Next Installment Due: ${formatCurrency(up.expected_payment)}`;
+          document.getElementById('bannerMilestoneDesc').textContent = `Scheduled on ${up.due_date} for order ${up.order_id}. Balance: ${formatCurrency(up.balance)}`;
+        }
+
+        // Load initial dashboard properties
+        await loadOrders();
+
+        // Check hash
+        const hash = window.location.hash.replace('#', '') || 'overview';
+        switchTab(hash);
+
+      } catch (err) {
+        console.error("Portal Init Error:", err);
+      }
+    }
+
+    // Staff Select
+    function onStaffSelectCustomer(custName) {
+      activeCustomerOverride = custName || null;
+      initPortal();
+    }
+
+    function getCustomerFriendlyStatus(order) {
+      const s = (order.status || '').toLowerCase();
+      if (s === 'completed') {
+        return { label: 'Completed', bg: '#10b981', color: '#ffffff' };
+      }
+      if (s === 'cancelled') {
+        return { label: 'Cancelled', bg: '#ef4444', color: '#ffffff' };
+      }
+      if (order.current_outstanding <= 0 && order.total_collected > 0) {
+        return { label: 'Completed & Fully Paid', bg: '#10b981', color: '#ffffff' };
+      }
+      return { label: 'Active Plan', bg: 'rgba(255, 255, 255, 0.22)', color: '#ffffff' };
+    }
+
+    // Load Orders
+    async function loadOrders() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_customer_orders${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        globalOrders = data.message.orders || [];
+
+        const dashContainer = document.getElementById('dashboardPropertiesList');
+        const fullContainer = document.getElementById('fullOrdersList');
+        dashContainer.innerHTML = '';
+        fullContainer.innerHTML = '';
+
+        if (globalOrders.length === 0) {
+          const emptyMsg = '<div style="padding: 24px; color: var(--slate-400); text-align: center; grid-column: 1/-1;">No property subscriptions recorded for this account.</div>';
+          dashContainer.innerHTML = emptyMsg;
+          fullContainer.innerHTML = emptyMsg;
+          return;
+        }
+
+        globalOrders.forEach(order => {
+          const cardHtml = createPropertyCardHtml(order);
+          fullContainer.innerHTML += cardHtml;
+        });
+
+        // Dashboard preview (first 2 orders)
+        globalOrders.slice(0, 2).forEach(order => {
+          dashContainer.innerHTML += createPropertyCardHtml(order);
+        });
+
+      } catch (err) {
+        console.error("Orders Load Error:", err);
+      }
+    }
+
+    function createPropertyCardHtml(order) {
+      const itemsText = order.items.map(i => i.item_name).join(' + ') || 'Property Unit';
+      const projectTitle = order.project ? `${order.project}` : order.company;
+      const friendlyStatus = getCustomerFriendlyStatus(order);
+
+      return `
+        <div class="property-card">
+          <div class="property-header">
+            <div>
+              <div class="property-project">${projectTitle}</div>
+              <div class="property-order-id">${order.name} &bull; ${order.transaction_date}</div>
+            </div>
+            <span class="badge" style="background: ${friendlyStatus.bg}; color: ${friendlyStatus.color}; font-weight: 700; padding: 4px 10px; border-radius: 9999px; font-size: 0.76rem; border: 1px solid rgba(255,255,255,0.25);">
+              ${friendlyStatus.label}
+            </span>
+          </div>
+          <div class="property-body">
+            <div class="property-unit"><i class="fa-solid fa-house-chimney" style="color: var(--primary); margin-right: 8px;"></i>${itemsText}</div>
+            
+            <div class="financial-summary-grid">
+              <div class="fin-item">
+                <span class="fin-label">Contract Total</span>
+                <span class="fin-val">${formatCurrency(order.grand_total, order.currency)}</span>
+              </div>
+              <div class="fin-item">
+                <span class="fin-label">Total Paid</span>
+                <span class="fin-val green">${formatCurrency(order.total_collected, order.currency)}</span>
+              </div>
+              <div class="fin-item">
+                <span class="fin-label">Outstanding</span>
+                <span class="fin-val red">${formatCurrency(order.current_outstanding, order.currency)}</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; color: var(--slate-600); margin-bottom: 4px;">
+                <span>Payment Progress</span>
+                <span>${order.percent_paid}%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: ${Math.min(100, order.percent_paid)}%;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="property-footer">
+            <span style="font-size: 0.8rem; color: var(--slate-500); font-weight: 600;">
+              ${order.receivables_schedule.length} Milestones
+            </span>
+            <button class="btn btn-primary btn-sm" onclick="openScheduleModal('${order.name}')">
+              <i class="fa-solid fa-calendar-days"></i> Receivables Schedule &amp; Waterfall
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Schedule Modal
+    function openScheduleModal(orderName) {
+      const order = globalOrders.find(o => o.name === orderName);
+      if (!order) return;
+      currentModalOrder = order;
+
+      document.getElementById('modalOrderTitle').textContent = `${order.project || order.name} &mdash; Receivables Schedule`;
+      document.getElementById('modalOrderSub').textContent = `Order ${order.name} &bull; ${order.company}`;
+      document.getElementById('modalGrandTotal').textContent = formatCurrency(order.grand_total, order.currency);
+      document.getElementById('modalTotalPaid').textContent = formatCurrency(order.total_collected, order.currency);
+      document.getElementById('modalOutstanding').textContent = formatCurrency(order.current_outstanding, order.currency);
+
+      const tbody = document.getElementById('modalScheduleTableBody');
+      tbody.innerHTML = '';
+
+      if (!order.receivables_schedule || order.receivables_schedule.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--slate-400); padding: 20px;">No receivables schedule rows generated for this order.</td></tr>';
+      } else {
+        order.receivables_schedule.forEach(row => {
+          const statusClass = (row.status || '').toLowerCase().replace(/\s+/g, '-');
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 700;">${row.idx}</td>
+              <td style="white-space: nowrap;">${row.due_date}</td>
+              <td style="font-weight: 600;">${formatCurrency(row.expected_payment, order.currency)}</td>
+              <td style="color: var(--success); font-weight: 600;">${formatCurrency(row.amount_paid, order.currency)}</td>
+              <td style="font-weight: 600;">${formatCurrency(row.balance, order.currency)}</td>
+              <td style="font-weight: 700; color: ${row.total_outstanding > 0 ? 'var(--accent)' : 'inherit'};">
+                ${formatCurrency(row.total_outstanding, order.currency)}
+              </td>
+              <td style="font-size: 0.8rem; color: var(--slate-500);">
+                ${row.penalty_amount > 0 ? `<span style="color: var(--accent); font-weight: 700;">+${formatCurrency(row.penalty_amount, order.currency)}</span>` : '&mdash;'}
+              </td>
+              <td>
+                <span class="badge badge-${statusClass}">
+                  <span class="badge-dot"></span> ${row.status}
+                </span>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      document.getElementById('scheduleModal').classList.add('show');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.remove('show');
+    }
+
+    // Sync Schedule
+    async function syncCurrentSchedule() {
+      if (!currentModalOrder) return;
+      const btn = document.getElementById('modalSyncBtn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/method/metro_backfill_receivables', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ so_name: currentModalOrder.name, dry_run: 0 })
+        });
+        const data = await res.json();
+        showToast("Schedule and payment allocations successfully synced!");
+        await loadOrders();
+        openScheduleModal(currentModalOrder.name);
+      } catch (err) {
+        showToast("Failed to sync schedule. Please try again.", "fa-circle-xmark");
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Sync Schedule';
+        btn.disabled = false;
+      }
+    }
+
+    // Load Payments
+    async function loadPayments() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_customer_payments${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        const payments = data.message.payments || [];
+        const tbody = document.getElementById('paymentsTableBody');
+        tbody.innerHTML = '';
+
+        if (payments.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--slate-400); padding: 24px;">No payment records found.</td></tr>';
+          return;
+        }
+
+        payments.forEach((p, idx) => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 700; color: var(--slate-400);">${idx + 1}</td>
+              <td style="white-space: nowrap; font-weight: 600;">${p.posting_date}</td>
+              <td><i class="fa-solid fa-credit-card" style="color: var(--primary); margin-right: 6px;"></i>${p.mode_of_payment}</td>
+              <td style="font-weight: 800; color: var(--success); font-size: 0.98rem;">${formatCurrency(p.paid_amount)}</td>
+              <td style="text-align: right;">
+                <a href="/api/method/customer_portal.custom_api.portal_api.download_payment_receipt?payment_name=${encodeURIComponent(p.name)}" target="_blank" class="btn btn-outline btn-sm" style="font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: var(--radius-sm);">
+                  <i class="fa-solid fa-file-arrow-down mr-1"></i> Download Receipt
+                </a>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Payments Load Error:", err);
+      }
+    }
+
+    // Load Invoices
+    async function loadInvoices() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_customer_invoices${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        const invoices = data.message.invoices || [];
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = '';
+
+        if (invoices.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--slate-400); padding: 24px;">No sales invoices found.</td></tr>';
+          return;
+        }
+
+        invoices.forEach(inv => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 700; font-family: monospace;">${inv.name}</td>
+              <td>${inv.posting_date}</td>
+              <td>${inv.due_date || '&mdash;'}</td>
+              <td style="font-weight: 700;">${formatCurrency(inv.grand_total, inv.currency)}</td>
+              <td style="font-weight: 700; color: ${inv.outstanding_amount > 0 ? 'var(--accent)' : 'var(--success)'};">
+                ${formatCurrency(inv.outstanding_amount, inv.currency)}
+              </td>
+              <td><span class="badge ${inv.outstanding_amount > 0 ? 'badge-overdue' : 'badge-paid'}">${inv.status}</span></td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Invoices Load Error:", err);
+      }
+    }
+
+    // Load Statement
+    async function loadStatement() {
+      const fromDate = document.getElementById('stmtFromDate').value;
+      const toDate = document.getElementById('stmtToDate').value;
+      let url = `/api/method/customer_portal.custom_api.portal_api.get_customer_statement?`;
+      if (fromDate) url += `from_date=${fromDate}&`;
+      if (toDate) url += `to_date=${toDate}&`;
+      if (activeCustomerOverride) url += `customer_override=${encodeURIComponent(activeCustomerOverride)}&`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const stmt = data.message;
+
+        document.getElementById('stmtFromDate').value = stmt.from_date;
+        document.getElementById('stmtToDate').value = stmt.to_date;
+
+        document.getElementById('stmtOpeningBal').textContent = formatCurrency(stmt.opening_balance);
+        document.getElementById('stmtTotalDebit').textContent = formatCurrency(stmt.total_debit);
+        document.getElementById('stmtTotalCredit').textContent = formatCurrency(stmt.total_credit);
+        document.getElementById('stmtClosingBal').textContent = formatCurrency(stmt.closing_balance);
+
+        const tbody = document.getElementById('statementTableBody');
+        tbody.innerHTML = '';
+
+        if (!stmt.entries || stmt.entries.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--slate-400); padding: 24px;">No ledger entries in this period.</td></tr>';
+          return;
+        }
+
+        stmt.entries.forEach(e => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="white-space: nowrap;">${e.posting_date}</td>
+              <td style="font-weight: 600;">${e.voucher_type}</td>
+              <td style="font-family: monospace;">${e.voucher_no}</td>
+              <td style="font-weight: 600;">${e.debit > 0 ? formatCurrency(e.debit) : '&mdash;'}</td>
+              <td style="font-weight: 600; color: var(--success);">${e.credit > 0 ? formatCurrency(e.credit) : '&mdash;'}</td>
+              <td style="font-weight: 700;">${formatCurrency(e.balance)}</td>
+              <td style="font-size: 0.82rem; color: var(--slate-500); max-width: 250px;">${e.remarks}</td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Statement Load Error:", err);
+      }
+    }
+
+    function downloadStatementPdf() {
+      const fromDate = document.getElementById('stmtFromDate').value;
+      const toDate = document.getElementById('stmtToDate').value;
+      let url = `/api/method/customer_portal.custom_api.portal_api.download_customer_statement_pdf?`;
+      if (fromDate) url += `from_date=${encodeURIComponent(fromDate)}&`;
+      if (toDate) url += `to_date=${encodeURIComponent(toDate)}&`;
+      if (activeCustomerOverride) url += `customer_override=${encodeURIComponent(activeCustomerOverride)}&`;
+      window.open(url, '_blank');
+    }
+
+    // Load Deliveries
+    async function loadDeliveries() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_customer_deliveries${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        const deliveries = data.message.deliveries || [];
+        const tbody = document.getElementById('deliveriesTableBody');
+        tbody.innerHTML = '';
+
+        if (deliveries.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--slate-400); padding: 24px;">No delivery or handover records found.</td></tr>';
+          return;
+        }
+
+        deliveries.forEach(d => {
+          const items = d.items.map(i => `${i.item_name} (Qty: ${i.qty})`).join(', ');
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 700; font-family: monospace;">${d.name}</td>
+              <td>${d.posting_date}</td>
+              <td>${items}</td>
+              <td><span class="badge badge-paid">${d.status}</span></td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Deliveries Load Error:", err);
+      }
+    }
+
+    // Load Documents
+    async function loadDocuments() {
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_shared_documents${activeCustomerOverride ? `?customer_override=${encodeURIComponent(activeCustomerOverride)}` : ''}`);
+        const data = await res.json();
+        const documents = data.message.documents || [];
+        const tbody = document.getElementById('documentsTableBody');
+        tbody.innerHTML = '';
+
+        if (documents.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--slate-400); padding: 24px;">No documents in vault.</td></tr>';
+          return;
+        }
+
+        documents.forEach(doc => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 600;"><i class="fa-regular fa-file-pdf" style="color: var(--accent); margin-right: 8px;"></i>${doc.file_name}</td>
+              <td style="font-size: 0.85rem; color: var(--slate-500);">${(doc.creation || '').slice(0, 10)}</td>
+              <td style="font-size: 0.85rem; color: var(--slate-500);">${doc.file_size ? Math.round(doc.file_size/1024) + ' KB' : '&mdash;'}</td>
+              <td>
+                <a href="${doc.file_url}" target="_blank" class="btn btn-outline btn-sm">
+                  <i class="fa-solid fa-download"></i> Download
+                </a>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Documents Load Error:", err);
+      }
+    }
+
+    // Upload Modal
+    function openUploadModal() { document.getElementById('uploadModal').classList.add('show'); }
+    function closeUploadModal() { document.getElementById('uploadModal').classList.remove('show'); }
+
+    async function handleUploadSubmit(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('docFileInput');
+      if (!fileInput.files[0]) return;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      const btn = document.getElementById('uploadSubmitBtn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.upload_customer_document', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.message && data.message.status === 'success') {
+          showToast("Document successfully uploaded to vault!");
+          closeUploadModal();
+          fileInput.value = '';
+          loadDocuments();
+        } else {
+          showToast(data.message || "Failed to upload document.", "fa-circle-xmark");
+        }
+      } catch (err) {
+        showToast("Error during file upload.", "fa-circle-xmark");
+      } finally {
+        btn.innerHTML = 'Upload to Vault';
+        btn.disabled = false;
+      }
+    }
+
+    // Support & Tickets Form
+    async function handleSendSupport(e) {
+      e.preventDefault();
+      const subject = document.getElementById('supportSubject').value;
+      const message = document.getElementById('supportMessage').value;
+      const issue_type = document.getElementById('supportCategory') ? document.getElementById('supportCategory').value : 'General Inquiry';
+      const priority = document.getElementById('supportPriority') ? document.getElementById('supportPriority').value : 'Medium';
+      const btn = document.getElementById('supportSendBtn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Submitting...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.send_support_message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject, message, issue_type, priority })
+        });
+        const data = await res.json();
+        const msg = data.message;
+        if (msg && msg.status === 'success') {
+          showToast(`Support Ticket #${msg.ticket_id || ''} created successfully! Our team will reach out promptly.`, 'fa-circle-check');
+          document.getElementById('supportSubject').value = '';
+          document.getElementById('supportMessage').value = '';
+          loadCustomerTickets();
+        } else {
+          showToast((msg && msg.message) || 'Error submitting ticket', 'fa-circle-exclamation');
+        }
+      } catch (err) {
+        showToast("Failed to submit ticket.", "fa-circle-xmark");
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Submit Support Ticket';
+        btn.disabled = false;
+      }
+    }
+
+    let modalActiveTicketId = null;
+
+    async function loadCustomerTickets() {
+      const tbody = document.getElementById('customerTicketsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--slate-400); padding: 20px;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading tickets...</td></tr>';
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.get_customer_tickets');
+        const data = await res.json();
+        const tickets = data.message || [];
+
+        if (!tickets || tickets.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--slate-400); padding: 30px;">No support tickets logged yet. Use the form above to submit an inquiry.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = tickets.map(t => {
+          let statusLabel = t.status || 'Open';
+          let badgeStyle = 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;';
+          if (['Closed', 'Resolved'].includes(statusLabel)) {
+            badgeStyle = 'background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;';
+          } else if (['In Progress', 'In Discussion', 'Under Observation'].includes(statusLabel)) {
+            badgeStyle = 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;';
+          } else if (['Hold', 'Cancelled'].includes(statusLabel)) {
+            badgeStyle = 'background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;';
+          }
+
+          let priorityStyle = 'color: #64748b;';
+          if (t.priority === 'Urgent') priorityStyle = 'color: #dc2626; font-weight: 700;';
+          else if (t.priority === 'High') priorityStyle = 'color: #ea580c; font-weight: 600;';
+
+          const dateStr = t.creation ? t.creation.substring(0, 10) : '';
+
+          return `
+            <tr style="cursor: pointer; transition: background 0.15s ease;" onclick="openCustomerTicketModal('${t.name}')">
+              <td style="font-weight: 700; color: var(--primary);">#${t.name}</td>
+              <td style="font-size: 0.85rem; color: var(--slate-600);">${t.issue_type || 'General'}</td>
+              <td style="font-weight: 600; color: var(--slate-800);">${t.clean_subject || t.subject}</td>
+              <td><span style="${priorityStyle} font-size: 0.82rem;">${t.priority || 'Medium'}</span></td>
+              <td><span style="display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; ${badgeStyle}">${statusLabel}</span></td>
+              <td style="font-size: 0.82rem; color: var(--slate-500);">${dateStr}</td>
+              <td style="text-align: center;">
+                <button class="btn btn-outline btn-xs" onclick="event.stopPropagation(); openCustomerTicketModal('${t.name}')" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 12px;">
+                  <i class="fa-solid fa-comments mr-1"></i> Chat
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--accent); padding: 20px;">Could not load support tickets.</td></tr>';
+      }
+    }
+
+    function formatPortalChatMessage(rawText) {
+      if (!rawText) return '';
+      let text = String(rawText).trim();
+
+      if (text.indexOf('<hr>') !== -1 || text.indexOf('<hr/>') !== -1 || text.indexOf('<hr />') !== -1) {
+        const parts = text.split(/<hr\s*\/?>/i);
+        text = parts[parts.length - 1].trim();
+      }
+
+      // Strip metadata headers and route tags
+      text = text.replace(/<p><strong>(?:Reporter|Employee|Desk Context \/ Route|Channel|Customer Name|Contact Email|Phone|Customer Record):<\/strong>[\s\S]*?<\/p>/gi, '');
+      text = text.replace(/<strong>(?:Reporter|Employee|Desk Context \/ Route|Channel|Customer Name|Contact Email|Phone|Customer Record):<\/strong>[^\n<]*(?:<br\s*\/?>)?/gi, '');
+      text = text.replace(/Desk Context \/ Route:[^\n<]*(?:<br\s*\/?>)?/gi, '');
+      text = text.replace(/<\/?(?:div|p|span)[^>]*>/gi, '');
+
+      // Decode HTML entities
+      const entityMap = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&apos;': "'",
+        '&#39;': "'",
+        '&#039;': "'"
+      };
+      text = text.replace(/&(?:amp|lt|gt|quot|apos|#39|#039);/g, m => entityMap[m] || m);
+
+      const codeBlocks = [];
+      const inlineCodes = [];
+
+      text = text.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, function (match, lang, code) {
+        const idx = codeBlocks.length;
+        codeBlocks.push({ lang: lang || 'CODE', code });
+        return '___CODE_BLOCK_' + idx + '___';
+      });
+
+      text = text.replace(/`([^`\n]+)`/g, function (match, code) {
+        const idx = inlineCodes.length;
+        inlineCodes.push(code);
+        return '___INLINE_CODE_' + idx + '___';
+      });
+
+      text = text.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, function (match, code) {
+        const idx = inlineCodes.length;
+        inlineCodes.push(code);
+        return '___INLINE_CODE_' + idx + '___';
+      });
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      }
+
+      text = escapeHtml(text).replace(/\n/g, '<br>');
+
+      codeBlocks.forEach(function (item, i) {
+        const safeCode = escapeHtml(item.code.trim());
+        const langLabel = item.lang ? `<div style="font-size: 0.65rem; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: 800; letter-spacing: 0.5px;"><i class="fa-solid fa-code mr-1"></i>${escapeHtml(item.lang)}</div>` : '';
+        const blockHtml = `
+          <div style="background: #030712; border: 1px solid #374151; border-radius: 6px; padding: 8px 10px; margin: 6px 0; font-family: ui-monospace, monospace; font-size: 0.75rem; line-height: 1.45; overflow-x: auto;">
+            ${langLabel}
+            <pre style="margin: 0; color: #38bdf8; font-family: inherit; white-space: pre-wrap; word-break: break-all;"><code>${safeCode}</code></pre>
+          </div>
+        `;
+        text = text.replace('___CODE_BLOCK_' + i + '___', blockHtml);
+      });
+
+      inlineCodes.forEach(function (code, i) {
+        const safeInline = escapeHtml(code.trim());
+        const inlineHtml = `<code style="background: #030712; color: #38bdf8; padding: 2px 5px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.75rem; border: 1px solid #374151;">${safeInline}</code>`;
+        text = text.replace('___INLINE_CODE_' + i + '___', inlineHtml);
+      });
+
+      return text;
+    }
+
+    async function openCustomerTicketModal(ticketId) {
+      modalActiveTicketId = ticketId;
+      const modal = document.getElementById('customerTicketModal');
+      const timeline = document.getElementById('modalTicketTimeline');
+      if (!modal) return;
+
+      modal.style.display = 'flex';
+      timeline.innerHTML = '<div style="text-align: center; color: var(--slate-400); padding: 30px;"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading conversation...</div>';
+
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_portal_ticket_conversation?ticket_id=${encodeURIComponent(ticketId)}`);
+        const data = await res.json();
+        const resData = data.message;
+
+        if (!resData || resData.status !== 'success') {
+          timeline.innerHTML = `<div style="color: var(--accent); padding: 20px; text-align: center;">${(resData && resData.message) || 'Could not load ticket details.'}</div>`;
+          return;
+        }
+
+        const t = resData.ticket;
+        const messages = resData.timeline || [];
+
+        document.getElementById('modalTicketId').textContent = '#' + t.name;
+        document.getElementById('modalTicketSubject').textContent = t.subject;
+        document.getElementById('modalTicketCategory').textContent = t.issue_type || 'General';
+        document.getElementById('modalTicketPriority').textContent = t.priority || 'Medium';
+        document.getElementById('modalTicketDate').textContent = t.creation ? t.creation.substring(0, 16) : '';
+
+        const badge = document.getElementById('modalTicketStatusBadge');
+        badge.textContent = t.status;
+        if (['Closed', 'Resolved'].includes(t.status)) {
+          badge.style.background = '#dcfce7';
+          badge.style.color = '#15803d';
+        } else {
+          badge.style.background = 'rgba(255,255,255,0.2)';
+          badge.style.color = '#ffffff';
+        }
+
+        if (messages.length === 0) {
+          timeline.innerHTML = '<div style="text-align: center; color: var(--slate-400); padding: 20px;">No messages recorded.</div>';
+          return;
+        }
+
+        timeline.innerHTML = messages.map(m => {
+          const dateStr = m.creation ? m.creation.substring(0, 16) : '';
+          const cleanBody = formatPortalChatMessage(m.content);
+
+          if (m.type === 'resolution') {
+            return `
+              <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: var(--radius-md); padding: 12px 14px;">
+                <div style="color: #15803d; font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-circle-check"></i> Official IT Resolution &bull; ${m.sender_name || 'AMGL IT'}
+                </div>
+                <div style="font-size: 0.85rem; color: #166534; line-height: 1.5;">${cleanBody}</div>
+                <div style="font-size: 0.72rem; color: #15803d; text-align: right; margin-top: 4px;">${dateStr}</div>
+              </div>
+            `;
+          }
+
+          if (m.is_me || m.type === 'root') {
+            return `
+              <div style="align-self: flex-end; max-width: 80%;">
+                <div style="font-size: 0.72rem; color: var(--slate-500); text-align: right; margin-bottom: 2px;">You (${dateStr})</div>
+                <div style="background: var(--primary); color: #ffffff !important; padding: 10px 14px; border-radius: 14px 14px 2px 14px; font-size: 0.85rem; line-height: 1.45; word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                  ${cleanBody}
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div style="align-self: flex-start; max-width: 80%;">
+                <div style="font-size: 0.72rem; color: var(--slate-600); margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
+                  <span style="font-weight: 700; color: var(--primary);">${m.sender_name || 'AMGL Support'}</span>
+                  <span style="background: #e0e7ff; color: #3730a3; font-size: 0.68rem; font-weight: 800; padding: 0 4px; border-radius: 4px;">Support Team</span>
+                  <span style="color: var(--slate-400);">&bull; ${dateStr}</span>
+                </div>
+                <div style="background: #ffffff; color: var(--slate-800) !important; border: 1px solid var(--slate-200); padding: 10px 14px; border-radius: 14px 14px 14px 2px; font-size: 0.85rem; line-height: 1.45; word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                  ${cleanBody}
+                </div>
+              </div>
+            `;
+          }
+        }).join('');
+
+        setTimeout(() => {
+          timeline.scrollTop = timeline.scrollHeight;
+        }, 100);
+
+      } catch (err) {
+        timeline.innerHTML = '<div style="color: var(--accent); padding: 20px; text-align: center;">Network error loading ticket conversation.</div>';
+      }
+    }
+
+    function closeCustomerTicketModal() {
+      const modal = document.getElementById('customerTicketModal');
+      if (modal) modal.style.display = 'none';
+      const input = document.getElementById('modalTicketReplyInput');
+      if (input) input.value = '';
+      modalActiveTicketId = null;
+    }
+
+    async function handleCustomerTicketReply(e) {
+      e.preventDefault();
+      const input = document.getElementById('modalTicketReplyInput');
+      const message = (input ? input.value : '').trim();
+      if (!message || !modalActiveTicketId) return;
+
+      const btn = document.getElementById('modalTicketReplyBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.reply_portal_ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticket_id: modalActiveTicketId,
+            message: message
+          })
+        });
+        const data = await res.json();
+        const msg = data.message;
+
+        if (msg && msg.status === 'success') {
+          input.value = '';
+          openCustomerTicketModal(modalActiveTicketId);
+          loadCustomerTickets();
+          showToast('Reply sent to AMGL Support!', 'fa-circle-check');
+        } else {
+          showToast((msg && msg.message) || 'Error sending reply.', 'fa-circle-exclamation');
+        }
+      } catch (err) {
+        showToast('Network error sending reply.', 'fa-circle-exclamation');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Send';
+      }
+    }
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function showResetSection(prefillEmail = '') {
+      const signIn = document.getElementById('signInSection');
+      const reset = document.getElementById('resetSection');
+      if (signIn && reset) {
+        signIn.style.display = 'none';
+        reset.style.display = 'block';
+        if (prefillEmail) {
+          document.getElementById('resetEmail').value = prefillEmail;
+        } else if (document.getElementById('loginEmail') && document.getElementById('loginEmail').value) {
+          document.getElementById('resetEmail').value = document.getElementById('loginEmail').value.trim();
+        }
+        document.getElementById('resetEmail').focus();
+      }
+    }
+
+    function showSignInSection() {
+      const signIn = document.getElementById('signInSection');
+      const reset = document.getElementById('resetSection');
+      if (signIn && reset) {
+        reset.style.display = 'none';
+        signIn.style.display = 'block';
+        document.getElementById('loginEmail').focus();
+      }
+    }
+
+    // Login Handler
+    async function handleLogin(e) {
+      e.preventDefault();
+      const usr = (document.getElementById('loginEmail').value || '').trim();
+      const pwd = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginSubmitBtn');
+      const alertBox = document.getElementById('loginAlert');
+      
+      alertBox.style.display = 'none';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.portal_login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usr, pwd })
+        });
+        const data = await res.json();
+        const msg = data.message;
+
+        if (msg && msg.status === 'success') {
+          btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Verified! Loading Portal...';
+          showToast('Welcome back! Loading your customer portal...', 'fa-circle-check');
+          setTimeout(() => {
+            window.location.href = '/customer-portal#overview';
+          }, 400);
+        } else if (msg && msg.status === 'needs_activation') {
+          showResetSection(usr);
+          const resetAlert = document.getElementById('resetAlert');
+          resetAlert.style.backgroundColor = 'var(--info-light)';
+          resetAlert.style.color = '#0369a1';
+          resetAlert.style.border = '1px solid #bae6fd';
+          resetAlert.style.display = 'block';
+          resetAlert.innerHTML = `<i class="fa-solid fa-info-circle mr-1"></i> ${msg.message}`;
+        } else {
+          const errText = (msg && msg.message) ? msg.message : 'Invalid credentials. Please verify your email and password.';
+          alertBox.style.backgroundColor = 'var(--accent-light)';
+          alertBox.style.color = '#991b1b';
+          alertBox.style.border = '1px solid #fecaca';
+          alertBox.style.display = 'block';
+          alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${errText}`;
+          document.getElementById('loginPassword').focus();
+        }
+      } catch (err) {
+        alertBox.style.backgroundColor = 'var(--accent-light)';
+        alertBox.style.color = '#991b1b';
+        alertBox.style.border = '1px solid #fecaca';
+        alertBox.style.display = 'block';
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Connection error. Please try again.`;
+      } finally {
+        if (!btn.innerHTML.includes('Verified')) {
+          btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket mr-2"></i> Sign In to Customer Portal';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Reset Password Handler
+    async function handleResetPassword(e) {
+      e.preventDefault();
+      const email = (document.getElementById('resetEmail').value || '').trim();
+      const btn = document.getElementById('resetSubmitBtn');
+      const alertBox = document.getElementById('resetAlert');
+
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sending link...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.portal_reset_password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        const msg = data.message;
+
+        if (msg && msg.status === 'success') {
+          alertBox.style.backgroundColor = 'var(--success-light)';
+          alertBox.style.color = '#065f46';
+          alertBox.style.border = '1px solid #a7f3d0';
+          alertBox.style.display = 'block';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> ${msg.message}`;
+          btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Link Sent!';
+        } else {
+          const errText = (msg && msg.message) ? msg.message : 'Could not process request. Please contact support.';
+          alertBox.style.backgroundColor = 'var(--accent-light)';
+          alertBox.style.color = '#991b1b';
+          alertBox.style.border = '1px solid #fecaca';
+          alertBox.style.display = 'block';
+          alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${errText}`;
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Send Setup / Reset Link';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alertBox.style.backgroundColor = 'var(--accent-light)';
+        alertBox.style.color = '#991b1b';
+        alertBox.style.border = '1px solid #fecaca';
+        alertBox.style.display = 'block';
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Connection error. Please try again.`;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Send Setup / Reset Link';
+        btn.disabled = false;
+      }
+    }
+
+    // Logout Handler
+    async function handleLogout() {
+      try {
+        await fetch('/api/method/logout');
+        window.location.reload();
+      } catch (err) {
+        window.location.href = '/customer-portal';
+      }
+    }
+
+    let drawerActiveTicketId = null;
+
+    function switchDrawerTab(tabName) {
+      document.querySelectorAll('.drawer-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--slate-600)';
+        btn.style.fontWeight = '600';
+        btn.style.boxShadow = 'none';
+      });
+
+      const activeBtn = document.querySelector(`.drawer-tab-btn[data-dtab="${tabName}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = '#ffffff';
+        activeBtn.style.color = 'var(--primary)';
+        activeBtn.style.fontWeight = '700';
+        activeBtn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+      }
+
+      const pTickets = document.getElementById('drawerPaneTickets');
+      const pNew = document.getElementById('drawerPaneNew');
+
+      if (tabName === 'tickets') {
+        if (pTickets) pTickets.style.display = 'flex';
+        if (pNew) pNew.style.display = 'none';
+        if (!drawerActiveTicketId) {
+          fetchDrawerTickets();
+        }
+      } else {
+        if (pTickets) pTickets.style.display = 'none';
+        if (pNew) pNew.style.display = 'block';
+      }
+    }
+
+    async function fetchDrawerTickets() {
+      const container = document.getElementById('drawerTicketsContainer');
+      const loading = document.getElementById('drawerTicketsLoading');
+      if (!container) return;
+
+      if (loading) loading.style.display = 'block';
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.get_customer_tickets');
+        const data = await res.json();
+        const tickets = data.message || [];
+
+        if (loading) loading.style.display = 'none';
+
+        if (!tickets || tickets.length === 0) {
+          container.innerHTML = '<div style="text-align: center; color: var(--slate-400); padding: 30px; font-size: 0.82rem;">No support tickets logged yet. Click "New Ticket" above.</div>';
+          return;
+        }
+
+        container.innerHTML = tickets.map(t => {
+          let statusBg = '#eff6ff';
+          let statusColor = '#1d4ed8';
+          if (['Closed', 'Resolved'].includes(t.status)) {
+            statusBg = '#f0fdf4';
+            statusColor = '#15803d';
+          } else if (['In Progress', 'In Discussion'].includes(t.status)) {
+            statusBg = '#fffbeb';
+            statusColor = '#b45309';
+          }
+
+          const dateStr = t.creation ? t.creation.substring(0, 10) : '';
+
+          return `
+            <div onclick="openDrawerThread('${t.name}')" 
+                 style="background: #ffffff; border: 1px solid var(--slate-200); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-weight: 800; font-size: 0.78rem; color: var(--primary);">#${t.name}</span>
+                <span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: ${statusBg}; color: ${statusColor};">${t.status}</span>
+              </div>
+              <div style="font-weight: 600; font-size: 0.82rem; color: var(--slate-800); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${t.clean_subject || t.subject}
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--slate-400); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--slate-200);">
+                <span>${t.issue_type || 'General'}</span>
+                <span style="color: var(--primary); font-weight: 700; background: #eff6ff; padding: 2px 7px; border-radius: 4px; border: 1px solid #bfdbfe;">
+                  <i class="fa-solid fa-comments mr-1"></i> Open Chat &amp; Reply &rarr;
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        if (loading) loading.style.display = 'none';
+        container.innerHTML = '<div style="color: var(--accent); font-size: 0.8rem; text-align: center; padding: 20px;">Could not load tickets.</div>';
+      }
+    }
+
+    async function openDrawerThread(ticketId) {
+      drawerActiveTicketId = ticketId;
+      const list = document.getElementById('drawerTicketsList');
+      const thread = document.getElementById('drawerThreadView');
+      const stream = document.getElementById('drawerThreadMessages');
+
+      if (list) list.style.display = 'none';
+      if (thread) thread.style.display = 'flex';
+
+      if (stream) stream.innerHTML = '<div style="text-align: center; color: var(--slate-400); padding: 25px; font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Loading conversation...</div>';
+
+      try {
+        const res = await fetch(`/api/method/customer_portal.custom_api.portal_api.get_portal_ticket_conversation?ticket_id=${encodeURIComponent(ticketId)}`);
+        const data = await res.json();
+        const resData = data.message;
+
+        if (!resData || resData.status !== 'success') {
+          stream.innerHTML = '<div style="color: var(--accent); padding: 10px; font-size: 0.8rem;">Could not load ticket.</div>';
+          return;
+        }
+
+        const t = resData.ticket;
+        const messages = resData.timeline || [];
+
+        document.getElementById('drawerThreadSubject').textContent = t.subject;
+        document.getElementById('drawerThreadMeta').textContent = `#${t.name} • ${t.issue_type || 'General'}`;
+
+        const badge = document.getElementById('drawerThreadStatusBadge');
+        badge.textContent = t.status;
+        if (['Closed', 'Resolved'].includes(t.status)) {
+          badge.style.background = '#dcfce7';
+          badge.style.color = '#15803d';
+        } else {
+          badge.style.background = '#eff6ff';
+          badge.style.color = '#1d4ed8';
+        }
+
+        if (messages.length === 0) {
+          stream.innerHTML = '<div style="text-align: center; color: var(--slate-400); font-size: 0.78rem; padding: 20px;">No messages recorded.</div>';
+          return;
+        }
+
+        stream.innerHTML = messages.map(m => {
+          const dateStr = m.creation ? m.creation.substring(0, 16) : '';
+          const cleanBody = formatPortalChatMessage(m.content);
+
+          if (m.type === 'resolution') {
+            return `
+              <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 8px 10px; font-size: 0.78rem;">
+                <div style="color: #15803d; font-weight: 700; margin-bottom: 2px;">
+                  <i class="fa-solid fa-circle-check"></i> Resolution • ${m.sender_name || 'IT Support'}
+                </div>
+                <div style="color: #166534;">${cleanBody}</div>
+              </div>
+            `;
+          }
+
+          if (m.is_me || m.type === 'root') {
+            return `
+              <div style="align-self: flex-end; max-width: 85%;">
+                <div style="font-size: 0.68rem; color: var(--slate-400); text-align: right; margin-bottom: 1px;">You (${dateStr})</div>
+                <div style="background: var(--primary); color: #ffffff !important; padding: 8px 12px; border-radius: 12px 12px 2px 12px; font-size: 0.8rem; line-height: 1.4; word-break: break-word;">
+                  ${cleanBody}
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div style="align-self: flex-start; max-width: 85%;">
+                <div style="font-size: 0.68rem; color: var(--slate-500); margin-bottom: 1px;">
+                  <strong style="color: var(--primary);">${m.sender_name || 'Support'}</strong> &bull; ${dateStr}
+                </div>
+                <div style="background: #ffffff; color: var(--slate-800) !important; border: 1px solid var(--slate-200); padding: 8px 12px; border-radius: 12px 12px 12px 2px; font-size: 0.8rem; line-height: 1.4; word-break: break-word;">
+                  ${cleanBody}
+                </div>
+              </div>
+            `;
+          }
+        }).join('');
+
+        setTimeout(() => {
+          stream.scrollTop = stream.scrollHeight;
+        }, 100);
+
+      } catch (err) {
+        stream.innerHTML = '<div style="color: var(--accent); padding: 10px; font-size: 0.8rem;">Network error.</div>';
+      }
+    }
+
+    function backToDrawerTickets() {
+      const list = document.getElementById('drawerTicketsList');
+      const thread = document.getElementById('drawerThreadView');
+      if (thread) thread.style.display = 'none';
+      if (list) list.style.display = 'block';
+      drawerActiveTicketId = null;
+      fetchDrawerTickets();
+    }
+
+    async function handleDrawerReplySubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('drawerReplyInput');
+      const message = (input ? input.value : '').trim();
+      if (!message || !drawerActiveTicketId) return;
+
+      const btn = document.getElementById('drawerReplyBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.reply_portal_ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticket_id: drawerActiveTicketId,
+            message: message
+          })
+        });
+        const data = await res.json();
+        const msg = data.message;
+
+        if (msg && msg.status === 'success') {
+          input.value = '';
+          openDrawerThread(drawerActiveTicketId);
+          if (typeof loadCustomerTickets === 'function') loadCustomerTickets();
+          showToast('Reply sent to AMGL Support!', 'fa-circle-check');
+        } else {
+          showToast((msg && msg.message) || 'Error sending reply.', 'fa-circle-exclamation');
+        }
+      } catch (err) {
+        showToast('Network error sending reply.', 'fa-circle-exclamation');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
+      }
+    }
+
+    // Floating Chat Handlers
+    function toggleChatDrawer() {
+      const drawer = document.getElementById('chatDrawer');
+      if (!drawer) return;
+      drawer.classList.toggle('open');
+      if (drawer.classList.contains('open')) {
+        const isGuest = (document.body.dataset.isGuest === '1');
+        if (!isGuest) {
+          switchDrawerTab('tickets');
+        }
+        const firstInput = drawer.querySelector('input, textarea');
+        if (firstInput) firstInput.focus();
+      }
+    }
+
+    async function handleFloatingChatSubmit(e) {
+      e.preventDefault();
+      const subject = (document.getElementById('floatChatSubject').value || '').trim();
+      const message = (document.getElementById('floatChatMessage').value || '').trim();
+      const categorySelect = document.getElementById('floatChatCategory');
+      const issue_type = categorySelect ? categorySelect.value : 'General Inquiry';
+      const emailInput = document.getElementById('floatChatEmail');
+      const nameInput = document.getElementById('floatChatName');
+      const sender_email = emailInput ? emailInput.value.trim() : null;
+      const sender_name = nameInput ? nameInput.value.trim() : null;
+
+      const btn = document.getElementById('floatChatSubmitBtn');
+      const alertBox = document.getElementById('floatChatAlert');
+
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Sending...';
+      btn.disabled = true;
+      alertBox.style.display = 'none';
+
+      try {
+        const payload = { subject, message, issue_type };
+        if (sender_email) payload.sender_email = sender_email;
+        if (sender_name) payload.sender_name = sender_name;
+
+        const res = await fetch('/api/method/customer_portal.custom_api.portal_api.send_support_message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        const msg = data.message;
+
+        if (msg && msg.status === 'success') {
+          alertBox.style.backgroundColor = 'var(--success-light)';
+          alertBox.style.color = '#065f46';
+          alertBox.style.border = '1px solid #a7f3d0';
+          alertBox.style.display = 'block';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> <strong>Ticket #${msg.ticket_id || ''} Created!</strong> Our customer team has received your message.`;
+          document.getElementById('floatingChatForm').reset();
+          showToast(`Support Ticket #${msg.ticket_id || ''} logged successfully!`, 'fa-circle-check');
+          if (typeof loadCustomerTickets === 'function') {
+            loadCustomerTickets();
+          }
+          const isGuest = (document.body.dataset.isGuest === '1');
+          if (!isGuest && msg.ticket_id) {
+            setTimeout(() => {
+              switchDrawerTab('tickets');
+              openDrawerThread(msg.ticket_id);
+              alertBox.style.display = 'none';
+            }, 1200);
+          } else {
+            setTimeout(() => {
+              toggleChatDrawer();
+              alertBox.style.display = 'none';
+            }, 3500);
+          }
+        } else {
+          alertBox.style.backgroundColor = 'var(--accent-light)';
+          alertBox.style.color = '#991b1b';
+          alertBox.style.border = '1px solid #fecaca';
+          alertBox.style.display = 'block';
+          alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${(msg && msg.message) || 'Error sending message.'}`;
+        }
+      } catch (err) {
+        alertBox.style.backgroundColor = 'var(--accent-light)';
+        alertBox.style.color = '#991b1b';
+        alertBox.style.border = '1px solid #fecaca';
+        alertBox.style.display = 'block';
+        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Failed to send message. Please try again.';
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> Submit Support Ticket';
+        btn.disabled = false;
+      }
+    }
+
+    const isGuestSession = (document.body.dataset.isGuest === '1');
+    if (!isGuestSession) {
+      document.addEventListener('DOMContentLoaded', initPortal);
+    }
+  </script>
+</body>
+</html>

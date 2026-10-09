@@ -22,7 +22,7 @@ from frappe.utils.file_manager import save_file
 import os
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def update_customer_profile(first_name=None, last_name=None, phone=None, address=None, city=None, state=None, profile_image=None):
     # Get the currently logged-in user email
     customer_email = frappe.session.user

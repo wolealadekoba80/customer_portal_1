@@ -25,7 +25,9 @@ app_include_js = "/assets/customer_portal/js/custom_script.js"
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 website_route_rules = [
-    {"from_route": "/customer-portal", "to_route": "customer_portal"}
+    {"from_route": "/customer-portal", "to_route": "customer_portal"},
+    {"from_route": "/client-portal", "to_route": "customer_portal"},
+    {"from_route": "/client_portal/<path:subpath>", "to_route": "customer_portal"},
 ]
 
 
@@ -128,9 +130,9 @@ website_route_rules = [
 
 
 doc_events = {
-    "Sales Order": {
-        "on_update": "customer_portal.custom_api.sales_invoice.update_penalty_and_create_invoice",
-    },
+    # "Sales Order": {
+    #     "on_update": "customer_portal.custom_api.sales_invoice.update_penalty_and_create_invoice",
+    # },
     # "Sales Invoice": {
     #     "on_change": "customer_portal.custom_api.sales_invoice.update_payment_schedule_on_invoice_submission",
     # }

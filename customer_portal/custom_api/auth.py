@@ -1,7 +1,7 @@
 import frappe
 from frappe import throw, msgprint, _
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_keys():
     user = frappe.get_doc('User', frappe.session.user)
 

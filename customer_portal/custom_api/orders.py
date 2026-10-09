@@ -274,7 +274,7 @@ def get_shared_documents():
 import frappe
 from frappe.utils.file_manager import save_file
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def upload_document():
     user = frappe.session.user
     filedata = frappe.request.files['file']
